@@ -1,6 +1,6 @@
 project:
   type: website
-  output-dir: out_github_io
+  output-dir: docs
 
 website:
   title: "englert.ai"
