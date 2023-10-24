@@ -270,7 +270,7 @@ N = m\ddot{x}+ml\ddot{\theta}\cos\theta-ml\dot{\theta}^2\sin\theta
 <li><span class="math inline">\(\ddot{\theta}\)</span> is the angular acceleration.</li>
 <li><span class="math inline">\(N\)</span> is the pendulum’s reaction force.</li>
 </ul>
-<p>This equation essentially describes how the pendulum’s motion is influenced by the cart’s movement and its own inertia. The term $ m$ is the force exerted on the pendulum due to the acceleration of the cart. The term <span class="math inline">\(ml\ddot{\theta}\cos\theta\)</span> describes the force on the pendulum due to its own angular acceleration, while −<span class="math inline">\(ml\dot{\theta}^2\sin\theta\)</span> accounts for the centrifugal force acting on the pendulum as it swings.</p>
+<p>This equation essentially describes how the pendulum’s motion is influenced by the cart’s movement and its own inertia. The term <span class="math inline">\(m\ddot{x}\)</span> is the force exerted on the pendulum due to the acceleration of the cart. The term <span class="math inline">\(ml\ddot{\theta}\cos\theta\)</span> describes the force on the pendulum due to its own angular acceleration, while −<span class="math inline">\(ml\dot{\theta}^2\sin\theta\)</span> accounts for the centrifugal force acting on the pendulum as it swings.</p>
 <p>Now, we can substitute this back in to the cart’s equation, which gives us: <span class="math display">\[\begin{equation}
     (M+m)\ddot{x}+b\dot{x}+ml\ddot{\theta}\cos\theta-ml\dot{\theta}^2\sin\theta=F
 \label{eq:horizontal}  \tag{1}
@@ -388,7 +388,7 @@ P\sin\theta+N\cos\theta-mg\sin\theta=ml\ddot{\theta}+m\ddot{x}\cos\theta
 </section>
 <section id="fin" class="level1">
 <h1>Fin</h1>
-<video width="100%" src="pendulum_on_cart.webm" controls="">
+<video width="100%" src="pendulum_on_cart.mp4" controls="">
 </video>
 <p>The code to reproduce the visualization:</p>
 <div class="cell" data-executetime="{&quot;end_time&quot;:&quot;2023-10-24T15:29:40.213372016Z&quot;,&quot;start_time&quot;:&quot;2023-10-24T15:29:40.016574369Z&quot;}" data-execution_count="2">
