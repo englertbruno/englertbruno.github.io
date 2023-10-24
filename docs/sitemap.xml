@@ -2,30 +2,18 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.englert.ai/about.html</loc>
-    <lastmod>2023-07-26T11:05:06.912Z</lastmod>
-  </url>
-  <url>
-    <loc>https://www.englert.ai/posts/post-with-code/index.html</loc>
-    <lastmod>2023-10-23T12:47:19.642Z</lastmod>
-  </url>
-  <url>
-    <loc>https://www.englert.ai/posts/distribution/explore_latent_space_aee.html</loc>
-    <lastmod>2023-07-26T11:32:40.471Z</lastmod>
-  </url>
-  <url>
-    <loc>https://www.englert.ai/index.html</loc>
-    <lastmod>2023-10-24T18:00:01.563Z</lastmod>
-  </url>
-  <url>
-    <loc>https://www.englert.ai/posts/welcome/index.html</loc>
-    <lastmod>2023-10-23T12:47:20.382Z</lastmod>
-  </url>
-  <url>
-    <loc>https://www.englert.ai/archive.html</loc>
-    <lastmod>2023-07-26T11:05:06.696Z</lastmod>
+    <lastmod>2023-10-24T18:02:54.844Z</lastmod>
   </url>
   <url>
     <loc>https://www.englert.ai/posts/inverted_pendulum/englert_ai_1_cart_physics.html</loc>
-    <lastmod>2023-10-24T18:01:20.670Z</lastmod>
+    <lastmod>2023-10-24T18:02:54.340Z</lastmod>
+  </url>
+  <url>
+    <loc>https://www.englert.ai/index.html</loc>
+    <lastmod>2023-10-24T18:02:53.796Z</lastmod>
+  </url>
+  <url>
+    <loc>https://www.englert.ai/archive.html</loc>
+    <lastmod>2023-10-24T18:02:54.588Z</lastmod>
   </url>
 </urlset>
