@@ -21,7 +21,6 @@ website:
   page-footer: "© 2023, englert.ai" 
 format:
   html:
-
     theme:
       light: [flatly, theme-light.scss]
       dark: [darkly, theme-dark.scss]

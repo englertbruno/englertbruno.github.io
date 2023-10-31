@@ -2,7 +2,7 @@
 title: "🤖 Welcome!"
 listing:
   contents: posts
-  fields: [image, date, title, author, description, reading-time]
+  fields: [image, categories, date, title, author, description, reading-time]
   sort: "date desc"
   type: default
   sort-ui: false

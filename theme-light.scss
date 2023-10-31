@@ -5,19 +5,23 @@ $body-bg: #f5f5f5;
 // $link-color: #75AADB;
 // $border-radius: 20px;  
 $blue: #183149;
-$grid-body-width: 600px !default;
-$grid-nav-width: 600px !default;
 
 // Code blocks
 $code-block-bg-alpha: -.8;
-
+$thumbnail-border-width: 2px;
 
 /*-- scss:rules --*/
 .quarto-post {
   background: #ffffff;
-  padding: 20px;
+  padding: 20px 20px 0px;
   border-radius: 20px;
   border-bottom: 1px solid #ffffff !important;
+}
+
+div.quarto-post .thumbnail img {
+  width: 40%;
+  margin-top: 0;
+  margin-left: 8.0em;
 }
 
 #quarto-header{

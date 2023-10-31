@@ -7,10 +7,6 @@ freeze: true
 # Enable banner style title blocks
 title-block-banner: true
 
-
-# Author name of all blog posts
-author: 'Bruno Englert'
-
 # Table of content settings
 toc: true
 toc-depth: 3

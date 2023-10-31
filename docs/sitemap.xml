@@ -2,18 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.englert.ai/about.html</loc>
-    <lastmod>2023-10-24T18:23:45.484Z</lastmod>
+    <lastmod>2023-10-31T10:11:20.712Z</lastmod>
   </url>
   <url>
-    <loc>https://www.englert.ai/posts/inverted_pendulum/englert_ai_1_cart_physics.html</loc>
-    <lastmod>2023-10-24T18:23:44.980Z</lastmod>
+    <loc>https://www.englert.ai/posts/1_inverted_pendulum/englert_ai_1_cart_physics.html</loc>
+    <lastmod>2023-10-31T10:11:20.204Z</lastmod>
   </url>
   <url>
     <loc>https://www.englert.ai/index.html</loc>
-    <lastmod>2023-10-24T18:23:44.436Z</lastmod>
+    <lastmod>2023-10-31T10:11:18.920Z</lastmod>
+  </url>
+  <url>
+    <loc>https://www.englert.ai/posts/2_fuzzy_control/englert_ai_2_fuzzy_control.html</loc>
+    <lastmod>2023-10-31T10:11:19.688Z</lastmod>
   </url>
   <url>
     <loc>https://www.englert.ai/archive.html</loc>
-    <lastmod>2023-10-24T18:23:45.228Z</lastmod>
+    <lastmod>2023-10-31T10:11:20.448Z</lastmod>
   </url>
 </urlset>
