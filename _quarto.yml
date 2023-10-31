@@ -8,15 +8,12 @@ website:
   navbar:
     pinned: True
     right:
-      - about.qmd
-      - icon: github
-        href: https://github.com/
-      - icon: twitter
-        href: https://twitter.com
-      - icon: rss
-        href: index.xml
+      - text: Posts
+        href: index.qmd
       - text: Archive
         href: archive.qmd
+      - icon: rss
+        href: index.xml
   google-analytics: <Insert your ID here>
   page-footer: "© 2023, englert.ai" 
 format:

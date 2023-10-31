@@ -72,9 +72,9 @@ ul.task-list li input[type="checkbox"] {
     }
 
     const options = {
-      valueNames: ['listing-date','listing-title',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
+      valueNames: ['listing-date','listing-title',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-title-sort'] }],
       
-      searchColumns: [],
+      searchColumns: ["listing-date","listing-title","listing-author"],
     };
 
     window['quarto-listings'] = window['quarto-listings'] || {};
@@ -125,27 +125,17 @@ gtag('config', '<Insert your ID here>', { 'anonymize_ip': true});
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
-    <a class="nav-link" href="./about.html" rel="" target="">
- <span class="menu-text">About</span></a>
+    <a class="nav-link" href="./index.html" rel="" target="">
+ <span class="menu-text">Posts</span></a>
   </li>  
-  <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/" rel="" target=""><i class="bi bi-github" role="img">
-</i> 
- <span class="menu-text"></span></a>
-  </li>  
-  <li class="nav-item compact">
-    <a class="nav-link" href="https://twitter.com" rel="" target=""><i class="bi bi-twitter" role="img">
-</i> 
- <span class="menu-text"></span></a>
+  <li class="nav-item">
+    <a class="nav-link active" href="./archive.html" rel="" target="" aria-current="page">
+ <span class="menu-text">Archive</span></a>
   </li>  
   <li class="nav-item compact">
     <a class="nav-link" href="./index.xml" rel="" target=""><i class="bi bi-rss" role="img">
 </i> 
  <span class="menu-text"></span></a>
-  </li>  
-  <li class="nav-item">
-    <a class="nav-link active" href="./archive.html" rel="" target="" aria-current="page">
- <span class="menu-text">Archive</span></a>
   </li>  
 </ul>
             <div class="quarto-navbar-tools">
@@ -159,9 +149,11 @@ gtag('config', '<Insert your ID here>', { 'anonymize_ip': true});
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        
+    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(2)</span></div><div class="category" data-category="control">control <span class="quarto-category-count">(1)</span></div><div class="category" data-category="sim">sim <span class="quarto-category-count">(1)</span></div></div></div>
 <!-- main -->
-<main class="content column-page" id="quarto-document-content">
+<main class="content column-page-left" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
@@ -184,10 +176,61 @@ gtag('config', '<Insert your ID here>', { 'anonymize_ip': true});
 
 
 
-<div class="quarto-listing quarto-listing-container-default" id="listing-listing">
-<div class="list quarto-listing-default">
-
+<div class="quarto-listing quarto-listing-container-table" id="listing-listing">
+<div class="listing-actions-group">
+   <div class="input-group input-group-sm quarto-listing-sort">
+     <span class="input-group-text"><i class="bi bi-sort-down"></i></span>
+     <select id="listing-listing-sort" class="form-select" aria-label="Order By" onchange="window['quarto-listings']['listing-listing'].sort(this.options[this.selectedIndex].value, { order: this.options[this.selectedIndex].getAttribute('data-direction')})">
+       <option value="" disabled="" selected="" hidden="">Order By</option>
+       <option value="index" data-direction="asc">Default</option>
+         <option value="listing-date-sort" data-direction="asc">
+          Date - Oldest
+        </option>
+         <option value="listing-date-sort" data-direction="desc">
+          Date - Newest
+        </option>
+         <option value="listing-title-sort" data-direction="asc">
+          Title
+        </option>
+     </select>
+  </div>
+    <div class="input-group input-group-sm quarto-listing-filter">
+      <span class="input-group-text"><i class="bi bi-search"></i></span>
+      <input type="text" class="search form-control" placeholder="Filter">
+    </div>
 </div>
+
+<table class="quarto-listing-table table">
+<thead>
+<tr>
+<th>
+<a class="sort" data-sort="listing-date-sort" onclick="if (this.classList.contains('sort-asc')) { this.classList.add('sort-desc'); this.classList.remove('sort-asc') } else { this.classList.add('sort-asc'); this.classList.remove('sort-desc')} return false;">Date</a>
+</th>
+<th>
+<a class="sort" data-sort="listing-title-sort" onclick="if (this.classList.contains('sort-asc')) { this.classList.add('sort-desc'); this.classList.remove('sort-asc') } else { this.classList.add('sort-asc'); this.classList.remove('sort-desc')} return false;">Title</a>
+</th>
+</tr>
+</thead>
+<tbody class="list">
+<tr data-index="0" data-categories="control" data-listing-date-sort="1690581600000" data-listing-file-modified-sort="1698747004934" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="14" data-listing-title-sort="Balancing the Inverted Pendulum: An Introduction to Fuzzy Logic Control" data-listing-filename-sort="englert_ai_2_fuzzy_control.ipynb">
+<td>
+<span class="listing-date">Jul 29, 2023</span>
+</td>
+<td>
+<a href="./posts/2_fuzzy_control/englert_ai_2_fuzzy_control.html" class="title listing-title">Balancing the Inverted Pendulum: An Introduction to Fuzzy Logic Control</a>
+</td>
+</tr>
+<tr data-index="1" data-categories="sim" data-listing-date-sort="1690322400000" data-listing-file-modified-sort="1698747539452" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-title-sort="2D Physics of The Inverted Pendulum on a Cart" data-listing-filename-sort="englert_ai_1_cart_physics.ipynb">
+<td>
+<span class="listing-date">Jul 26, 2023</span>
+</td>
+<td>
+<a href="./posts/1_inverted_pendulum/englert_ai_1_cart_physics.html" class="title listing-title">2D Physics of The Inverted Pendulum on a Cart</a>
+</td>
+</tr>
+</tbody>
+
+</table>
 <div class="listing-no-matching d-none">
 No matching items
 </div>
