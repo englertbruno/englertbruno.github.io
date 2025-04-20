@@ -1,6 +1,9 @@
 project:
   type: website
   output-dir: docs
+  resources:
+    - "*.mp4"
+    - "*.wav"
 
 website:
   title: "englert.ai"
@@ -15,7 +18,7 @@ website:
       - icon: rss
         href: index.xml
   google-analytics: <Insert your ID here>
-  page-footer: "© 2023, englert.ai" 
+  page-footer: "© 2025, englert.ai"
 format:
   html:
     theme:
