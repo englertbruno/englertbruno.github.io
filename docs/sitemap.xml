@@ -2,22 +2,26 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.englert.ai/about.html</loc>
-    <lastmod>2023-10-31T10:30:33.093Z</lastmod>
+    <lastmod>2023-07-25T11:18:42.850Z</lastmod>
   </url>
   <url>
-    <loc>https://www.englert.ai/posts/1_inverted_pendulum/englert_ai_1_cart_physics.html</loc>
-    <lastmod>2023-10-31T10:30:32.557Z</lastmod>
+    <loc>https://www.englert.ai/posts/003_neural_tract/englert_ai_3_neural_tract.html</loc>
+    <lastmod>2025-04-20T13:41:58.191Z</lastmod>
+  </url>
+  <url>
+    <loc>https://www.englert.ai/posts/002_fuzzy_control/englert_ai_2_fuzzy_control.html</loc>
+    <lastmod>2025-04-02T14:52:48.024Z</lastmod>
   </url>
   <url>
     <loc>https://www.englert.ai/index.html</loc>
-    <lastmod>2023-10-31T10:30:31.301Z</lastmod>
+    <lastmod>2023-10-28T09:02:44.965Z</lastmod>
   </url>
   <url>
-    <loc>https://www.englert.ai/posts/2_fuzzy_control/englert_ai_2_fuzzy_control.html</loc>
-    <lastmod>2023-10-31T10:30:32.049Z</lastmod>
+    <loc>https://www.englert.ai/posts/001_inverted_pendulum/englert_ai_1_cart_physics.html</loc>
+    <lastmod>2025-04-02T14:52:48.068Z</lastmod>
   </url>
   <url>
     <loc>https://www.englert.ai/archive.html</loc>
-    <lastmod>2023-10-31T10:30:32.825Z</lastmod>
+    <lastmod>2023-10-31T10:23:16.002Z</lastmod>
   </url>
 </urlset>

@@ -2,15 +2,17 @@
   {
     "listing": "/index.html",
     "items": [
-      "/posts/2_fuzzy_control/englert_ai_2_fuzzy_control.html",
-      "/posts/1_inverted_pendulum/englert_ai_1_cart_physics.html"
+      "/posts/003_neural_tract/englert_ai_3_neural_tract.html",
+      "/posts/002_fuzzy_control/englert_ai_2_fuzzy_control.html",
+      "/posts/001_inverted_pendulum/englert_ai_1_cart_physics.html"
     ]
   },
   {
     "listing": "/archive.html",
     "items": [
-      "/posts/2_fuzzy_control/englert_ai_2_fuzzy_control.html",
-      "/posts/1_inverted_pendulum/englert_ai_1_cart_physics.html"
+      "/posts/003_neural_tract/englert_ai_3_neural_tract.html",
+      "/posts/002_fuzzy_control/englert_ai_2_fuzzy_control.html",
+      "/posts/001_inverted_pendulum/englert_ai_1_cart_physics.html"
     ]
   }
 ]
