@@ -10,7 +10,7 @@
 <atom:link href="https://www.englert.ai/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.6.42</generator>
-<lastBuildDate>Fri, 05 Apr 2024 22:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sat, 19 Apr 2025 22:00:00 GMT</lastBuildDate>
 <item>
   <title>Controlling a Vocal Tract With a Neural Network</title>
   <dc:creator>Bruno Englert</dc:creator>
@@ -312,7 +312,7 @@ font-style: inherit;">}</span></span></code></pre></div>
  ]]></description>
   <category>deep</category>
   <guid>https://www.englert.ai/posts/003_neural_tract/englert_ai_3_neural_tract.html</guid>
-  <pubDate>Fri, 05 Apr 2024 22:00:00 GMT</pubDate>
+  <pubDate>Sat, 19 Apr 2025 22:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Balancing the Inverted Pendulum: An Introduction to Fuzzy Logic Control</title>
