@@ -23,6 +23,7 @@
 
 <section id="introduction" class="level1">
 <h1>Introduction</h1>
+<p><img style="float: left; padding-right: 10px; padding-top: 10px; padding-bottom: 10px; padding-left: 10px;" width="40%" src="https://www.englert.ai/posts/004_vit_attention_mask/vit_illustration.png"></p>
 <p>There’s a persistent belief in the machine learning community that Vision Transformers (ViTs) require massive datasets to perform well. Statements like “ViTs need millions of images” or “they don’t work without ImageNet-21k” are commonly accepted truths. But rarely do we pause to ask <strong>why are ViTs so data-hungry?</strong></p>
 <p>In this post, we argue that the answer lies in the very core of what makes ViTs different: the attention mechanism. We’ll explore why attention creates problems early in training, how it leads to noisy gradients and unstable representations — and describe one way to address the instability. This method does not fix all the challenges; notably, it does not solve the issue of learning attention patterns that generalize well from limited data. But it does reduce training instability, especially when batch sizes are small.</p>
 </section>
@@ -62,7 +63,7 @@
 </video>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-soft_spatial_attention_bias_annealing_progression-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: <strong>Visualization of soft spatial attention bias annealing.</strong> Initially, attention is strongly localized to neighboring patches, and as training progresses, the bias temperature increases, gradually restoring global attention.
+Figure&nbsp;1: <strong>Visualization of soft spatial attention bias annealing.</strong> Each grid cell represent the attention bias for one patch token. Initially, attention is turned off. As training progresses, it is strongly localized to neighboring patches. Eventually, as the bias temperature increases, it gradually restores the vanilla global attention.
 </figcaption>
 </figure>
 </div>
