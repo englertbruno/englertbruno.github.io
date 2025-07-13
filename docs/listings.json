@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/004_vit_attention_mask/englert_ai_4_vit_attention_mask.html",
       "/posts/003_neural_tract/englert_ai_3_neural_tract.html",
       "/posts/002_fuzzy_control/englert_ai_2_fuzzy_control.html",
       "/posts/001_inverted_pendulum/englert_ai_1_cart_physics.html"
@@ -10,6 +11,7 @@
   {
     "listing": "/archive.html",
     "items": [
+      "/posts/004_vit_attention_mask/englert_ai_4_vit_attention_mask.html",
       "/posts/003_neural_tract/englert_ai_3_neural_tract.html",
       "/posts/002_fuzzy_control/englert_ai_2_fuzzy_control.html",
       "/posts/001_inverted_pendulum/englert_ai_1_cart_physics.html"

@@ -10,7 +10,280 @@
 <atom:link href="https://www.englert.ai/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.6.42</generator>
-<lastBuildDate>Sat, 19 Apr 2025 22:00:00 GMT</lastBuildDate>
+<lastBuildDate>Tue, 08 Jul 2025 22:00:00 GMT</lastBuildDate>
+<item>
+  <title>Why Do Vision Transformers Need So Much Data and How to (Partially) Fix It?</title>
+  <dc:creator>Bruno Englert</dc:creator>
+  <link>https://www.englert.ai/posts/004_vit_attention_mask/englert_ai_4_vit_attention_mask.html</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<section id="introduction" class="level1">
+<h1>Introduction</h1>
+<p>There’s a persistent belief in the machine learning community that Vision Transformers (ViTs) require massive datasets to perform well. Statements like “ViTs need millions of images” or “they don’t work without ImageNet-21k” are commonly accepted truths. But rarely do we pause to ask <strong>why are ViTs so data-hungry?</strong></p>
+<p>In this post, we argue that the answer lies in the very core of what makes ViTs different: the attention mechanism. We’ll explore why attention creates problems early in training, how it leads to noisy gradients and unstable representations — and describe one way to address the instability. This method does not fix all the challenges; notably, it does not solve the issue of learning attention patterns that generalize well from limited data. But it does reduce training instability, especially when batch sizes are small.</p>
+</section>
+<section id="understanding-the-problem" class="level1">
+<h1>Understanding the Problem</h1>
+<section id="vits-and-global-attention" class="level2">
+<h2 class="anchored" data-anchor-id="vits-and-global-attention">ViTs and Global Attention</h2>
+<p>Transformers were originally designed for text, where each token (word or subword) attending to every other token makes sense — language is naturally long-range and sequential. But in images, the locality of information matters. Neighboring pixels and patches are far more likely to be related than distant ones.</p>
+<p>ViTs ignore this. Every patch attends to every other patch from the very start of training. That means if attention weights are random (which they are at initialization), the representation at each patch is a jumbled mix of the entire image. Early layers smear information across the whole input.</p>
+</section>
+<section id="gradient-noise-and-instability" class="level2">
+<h2 class="anchored" data-anchor-id="gradient-noise-and-instability">Gradient Noise and Instability</h2>
+<p>Since each image in a batch has a different attention pattern, the resulting gradients are highly inconsistent — even within a single batch. This leads to high gradient noise and thus poor learning.</p>
+<p><strong>Two key problems arise from this:</strong></p>
+<ol type="1">
+<li><strong>Information mixing:</strong> Early attention layers destroy spatial locality. At the very end of the model’s output layer, a patch’s embedding contains little meaningful information about the patch itself.</li>
+<li><strong>High gradient noise:</strong> Because attention is input-dependent, every image induces a unique mixing pattern, causing gradients to fluctuate wildly across the batch.</li>
+</ol>
+<p>Together, these effects make training ViTs difficult when the batch size is small.</p>
+</section>
+<section id="why-cnns-dont-suffer-from-this" class="level2">
+<h2 class="anchored" data-anchor-id="why-cnns-dont-suffer-from-this">Why CNNs Don’t Suffer from This</h2>
+<p>CNNs by design have inductive bias for locality and translation invariance. Filters are shared across space, and only small neighborhoods are considered at each layer. This makes them stable and thus doesn’t require a larger batch size to lower the gradient noise. ViTs, on the other hand, start with no spatial bias. They must <em>learn</em> to be local and how to use attention.</p>
+</section>
+</section>
+<section id="methodology" class="level1">
+<h1>Methodology</h1>
+<section id="what-is-soft-spatial-attention-bias-annealing" class="level2">
+<h2 class="anchored" data-anchor-id="what-is-soft-spatial-attention-bias-annealing">What Is Soft Spatial Attention Bias Annealing?</h2>
+<p>One way to improve early ViT training when using a small batch size, is by adding a <strong>soft spatial attention bias</strong> that makes early attention focus on nearby patches.</p>
+<p>This bias is computed using pairwise Euclidean distances between patch positions. The further away two patches are, the less they attend to each other — controlled by a temperature parameter that is slowly increased during training. Low temperature means attention is almost identity-like (each patch attends to itself); high temperature restores full global attention.</p>
+<p>This temperature change during the training can be interpreted as a form of <strong>attention annealing</strong> — gradually releasing the spatial constraint as the model becomes more stable.</p>
+<div id="fig-soft_spatial_attention_bias_annealing_progression" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-soft_spatial_attention_bias_annealing_progression-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<video width="99%" src="attention_bias_progression.mp4" type="video/mp4" controls="">
+</video>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-soft_spatial_attention_bias_annealing_progression-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: <strong>Visualization of soft spatial attention bias annealing.</strong> Initially, attention is strongly localized to neighboring patches, and as training progresses, the bias temperature increases, gradually restoring global attention.
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="code-snippet" class="level2">
+<h2 class="anchored" data-anchor-id="code-snippet">Code Snippet</h2>
+<p>Here’s the code to generate the attention bias:</p>
+<div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> get_soft_spatial_attention_bias(temperature: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">float</span>, img_size: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">int</span>, patch_size: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">int</span>) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-&gt;</span> torch.Tensor:</span>
+<span id="cb1-2">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"""</span></span>
+<span id="cb1-3"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    Create a soft spatial attention bias based on Euclidean distance between image patch positions.</span></span>
+<span id="cb1-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    """</span></span>
+<span id="cb1-5">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Create a [H*W, 2] grid of 2D positions</span></span>
+<span id="cb1-6">    coords <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> torch.stack(torch.meshgrid(</span>
+<span id="cb1-7">        torch.arange(img_size <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">//</span> patch_size),</span>
+<span id="cb1-8">        torch.arange(img_size <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">//</span> patch_size),</span>
+<span id="cb1-9">        indexing<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'xy'</span>), dim<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span>
+<span id="cb1-10">    )</span>
+<span id="cb1-11">    coords <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> coords.reshape(<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>)  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># [num_tokens, 2]</span></span>
+<span id="cb1-12"></span>
+<span id="cb1-13">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Compute pairwise squared Euclidean distances: [num_tokens, num_tokens]</span></span>
+<span id="cb1-14">    dists <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> torch.cdist(coords.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">float</span>(), coords.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">float</span>(), p<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>)</span>
+<span id="cb1-15"></span>
+<span id="cb1-16">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Apply temperature</span></span>
+<span id="cb1-17">    bias <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> torch.softmax(<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span>dists <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> temperature, dim<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>)</span>
+<span id="cb1-18">    bias <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> torch.log(bias)</span>
+<span id="cb1-19"></span>
+<span id="cb1-20">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Reshape to [1, 1, num_tokens, num_tokens] for use in attention</span></span>
+<span id="cb1-21">    bias <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> bias.unsqueeze(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>).unsqueeze(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>)</span>
+<span id="cb1-22"></span>
+<span id="cb1-23">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> bias</span></code></pre></div>
+<p>We add this bias to the attention logits. It acts like a soft mask that encourages each token to attend mostly to nearby tokens — very much like a convolution. As training progresses, we increase the temperature to flatten the bias, eventually restoring global attention.</p>
+</section>
+</section>
+<section id="results" class="level1">
+<h1>Results</h1>
+<p>To evaluate the effectiveness of soft spatial attention bias, we trained two ViTs on ImageNet-1K under identical settings, except for the use of spatial bias annealing:</p>
+<ol type="1">
+<li><strong>Baseline</strong>: Standard ViT with global attention from the beginning</li>
+<li><strong>With Soft Spatial Bias</strong>: ViT trained with spatial attention bias annealing</li>
+</ol>
+<p>We report both final Top-1 accuracy:</p>
+<div class="results">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Metric</th>
+<th>Baseline</th>
+<th>With Soft Spatial Bias</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Final Top-1 Accuracy</td>
+<td>9.9%</td>
+<td>34.5%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="fig-acc_by_steps" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-acc_by_steps-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://www.englert.ai/posts/004_vit_attention_mask/acc_by_steps.svg" class="img-fluid figure-img" style="width:99.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-acc_by_steps-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: <strong>Comparison of training convergence between baseline ViT and ViT with soft spatial attention bias.</strong> The model with spatial bias annealing converges faster and achieves higher accuracy at early training stages compared to the baseline.
+</figcaption>
+</figure>
+</div>
+<p>These results suggest that introducing soft spatial bias improves early convergence and training stability. Final performance depends on other factors such as data scale and augmentation strategy, but this method appears to reliably smooth out optimization in the early stages.</p>
+</section>
+<section id="conclusion" class="level1">
+<h1>Conclusion</h1>
+<p>This post explored why Vision Transformers (ViTs) are often considered data-hungry — not merely due to model size, but because of how attention behaves early in training. Random attention patterns lead to destructive information mixing and noisy gradients when training with a small batch size.</p>
+<p>We showed that one way to address this is by introducing a soft spatial attention bias that restricts attention to nearby patches early in training and gradually relaxes this constraint. This process — which we refer to as attention annealing — mimics the local-to-global structure of CNNs, but keeps the flexibility of attention-based models.</p>
+<p>Importantly, this approach does not require architectural changes, additional parameters, or more data. It simply adds a spatial prior to help stabilize early training and reduce gradient noise. As the model gains capacity to learn meaningful representations, this prior fades away.</p>
+<p>While this method addresses the issue of gradient noise and batch size sensitivity, it does not solve everything. A second challenge remains: how to learn attention patterns that generalize well from limited data.</p>
+</section>
+<section id="citation" class="level1">
+<h1>Citation</h1>
+<p>Cited as:</p>
+<pre><code>Englert, Brunó B. (Jul 2025). Why Do Vision Transformers Need So Much Data and How to (Partially) Fix It?. https://englert.ai/posts/004_vit_attention_mask/englert_ai_4_vit_attention_mask.html.</code></pre>
+<p>Or</p>
+<div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode ruby code-with-copy"><code class="sourceCode ruby"><span id="cb3-1"><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">@article</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">{</span>englert2025spatialattnbiasanealing,</span>
+<span id="cb3-2">  title   <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Why Do Vision Transformers Need So Much Data and How to (Partially) Fix It?"</span>,</span>
+<span id="cb3-3">  author  <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Englert, Brunó B."</span>,</span>
+<span id="cb3-4">  journal <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"englert.ai"</span>,</span>
+<span id="cb3-5">  year    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"2025"</span>,</span>
+<span id="cb3-6">  month   <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Jul"</span>,</span>
+<span id="cb3-7">  url     <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://englert.ai/posts/004_vit_attention_mask/englert_ai_4_vit_attention_mask.html"</span></span>
+<span id="cb3-8"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">}</span></span></code></pre></div>
+</section>
+<section id="code" class="level1">
+<h1>Code</h1>
+
+
+</section>
+
+ ]]></description>
+  <category>deep</category>
+  <guid>https://www.englert.ai/posts/004_vit_attention_mask/englert_ai_4_vit_attention_mask.html</guid>
+  <pubDate>Tue, 08 Jul 2025 22:00:00 GMT</pubDate>
+</item>
 <item>
   <title>Controlling a Vocal Tract With a Neural Network</title>
   <dc:creator>Bruno Englert</dc:creator>

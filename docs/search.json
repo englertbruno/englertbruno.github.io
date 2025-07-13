@@ -123,7 +123,49 @@
     "href": "index.html",
     "title": "🤖 Welcome!",
     "section": "",
-    "text": "Controlling a Vocal Tract With a Neural Network\n\n\n\n\n\n\ndeep\n\n\n\n\n\n\n\n\n\nApr 20, 2025\n\n\nBruno Englert\n\n\n15 min\n\n\n\n\n\n\n\n\n\n\n\n\nBalancing the Inverted Pendulum: An Introduction to Fuzzy Logic Control\n\n\n\n\n\n\ncontrol\n\n\n\n\n\n\n\n\n\nJul 29, 2023\n\n\nBruno Englert\n\n\n14 min\n\n\n\n\n\n\n\n\n\n\n\n\n2D Physics of The Inverted Pendulum on a Cart\n\n\n\n\n\n\nsim\n\n\n\n\n\n\n\n\n\nJul 26, 2023\n\n\nBruno Englert\n\n\n7 min\n\n\n\n\n\n\nNo matching items"
+    "text": "Why Do Vision Transformers Need So Much Data and How to (Partially) Fix It?\n\n\n\n\n\n\ndeep\n\n\n\n\n\n\n\n\n\nJul 9, 2025\n\n\nBruno Englert\n\n\n7 min\n\n\n\n\n\n\n\n\n\n\n\n\nControlling a Vocal Tract With a Neural Network\n\n\n\n\n\n\ndeep\n\n\n\n\n\n\n\n\n\nApr 20, 2025\n\n\nBruno Englert\n\n\n15 min\n\n\n\n\n\n\n\n\n\n\n\n\nBalancing the Inverted Pendulum: An Introduction to Fuzzy Logic Control\n\n\n\n\n\n\ncontrol\n\n\n\n\n\n\n\n\n\nJul 29, 2023\n\n\nBruno Englert\n\n\n14 min\n\n\n\n\n\n\n\n\n\n\n\n\n2D Physics of The Inverted Pendulum on a Cart\n\n\n\n\n\n\nsim\n\n\n\n\n\n\n\n\n\nJul 26, 2023\n\n\nBruno Englert\n\n\n7 min\n\n\n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "posts/004_vit_attention_mask/englert_ai_4_vit_attention_mask.html",
+    "href": "posts/004_vit_attention_mask/englert_ai_4_vit_attention_mask.html",
+    "title": "Why Do Vision Transformers Need So Much Data and How to (Partially) Fix It?",
+    "section": "",
+    "text": "There’s a persistent belief in the machine learning community that Vision Transformers (ViTs) require massive datasets to perform well. Statements like “ViTs need millions of images” or “they don’t work without ImageNet-21k” are commonly accepted truths. But rarely do we pause to ask why are ViTs so data-hungry?\nIn this post, we argue that the answer lies in the very core of what makes ViTs different: the attention mechanism. We’ll explore why attention creates problems early in training, how it leads to noisy gradients and unstable representations — and describe one way to address the instability. This method does not fix all the challenges; notably, it does not solve the issue of learning attention patterns that generalize well from limited data. But it does reduce training instability, especially when batch sizes are small."
+  },
+  {
+    "objectID": "posts/004_vit_attention_mask/englert_ai_4_vit_attention_mask.html#vits-and-global-attention",
+    "href": "posts/004_vit_attention_mask/englert_ai_4_vit_attention_mask.html#vits-and-global-attention",
+    "title": "Why Do Vision Transformers Need So Much Data and How to (Partially) Fix It?",
+    "section": "ViTs and Global Attention",
+    "text": "ViTs and Global Attention\nTransformers were originally designed for text, where each token (word or subword) attending to every other token makes sense — language is naturally long-range and sequential. But in images, the locality of information matters. Neighboring pixels and patches are far more likely to be related than distant ones.\nViTs ignore this. Every patch attends to every other patch from the very start of training. That means if attention weights are random (which they are at initialization), the representation at each patch is a jumbled mix of the entire image. Early layers smear information across the whole input."
+  },
+  {
+    "objectID": "posts/004_vit_attention_mask/englert_ai_4_vit_attention_mask.html#gradient-noise-and-instability",
+    "href": "posts/004_vit_attention_mask/englert_ai_4_vit_attention_mask.html#gradient-noise-and-instability",
+    "title": "Why Do Vision Transformers Need So Much Data and How to (Partially) Fix It?",
+    "section": "Gradient Noise and Instability",
+    "text": "Gradient Noise and Instability\nSince each image in a batch has a different attention pattern, the resulting gradients are highly inconsistent — even within a single batch. This leads to high gradient noise and thus poor learning.\nTwo key problems arise from this:\n\nInformation mixing: Early attention layers destroy spatial locality. At the very end of the model’s output layer, a patch’s embedding contains little meaningful information about the patch itself.\nHigh gradient noise: Because attention is input-dependent, every image induces a unique mixing pattern, causing gradients to fluctuate wildly across the batch.\n\nTogether, these effects make training ViTs difficult when the batch size is small."
+  },
+  {
+    "objectID": "posts/004_vit_attention_mask/englert_ai_4_vit_attention_mask.html#why-cnns-dont-suffer-from-this",
+    "href": "posts/004_vit_attention_mask/englert_ai_4_vit_attention_mask.html#why-cnns-dont-suffer-from-this",
+    "title": "Why Do Vision Transformers Need So Much Data and How to (Partially) Fix It?",
+    "section": "Why CNNs Don’t Suffer from This",
+    "text": "Why CNNs Don’t Suffer from This\nCNNs by design have inductive bias for locality and translation invariance. Filters are shared across space, and only small neighborhoods are considered at each layer. This makes them stable and thus doesn’t require a larger batch size to lower the gradient noise. ViTs, on the other hand, start with no spatial bias. They must learn to be local and how to use attention."
+  },
+  {
+    "objectID": "posts/004_vit_attention_mask/englert_ai_4_vit_attention_mask.html#what-is-soft-spatial-attention-bias-annealing",
+    "href": "posts/004_vit_attention_mask/englert_ai_4_vit_attention_mask.html#what-is-soft-spatial-attention-bias-annealing",
+    "title": "Why Do Vision Transformers Need So Much Data and How to (Partially) Fix It?",
+    "section": "What Is Soft Spatial Attention Bias Annealing?",
+    "text": "What Is Soft Spatial Attention Bias Annealing?\nOne way to improve early ViT training when using a small batch size, is by adding a soft spatial attention bias that makes early attention focus on nearby patches.\nThis bias is computed using pairwise Euclidean distances between patch positions. The further away two patches are, the less they attend to each other — controlled by a temperature parameter that is slowly increased during training. Low temperature means attention is almost identity-like (each patch attends to itself); high temperature restores full global attention.\nThis temperature change during the training can be interpreted as a form of attention annealing — gradually releasing the spatial constraint as the model becomes more stable.\n\n\n\n\n\n\n\nFigure 1: Visualization of soft spatial attention bias annealing. Initially, attention is strongly localized to neighboring patches, and as training progresses, the bias temperature increases, gradually restoring global attention."
+  },
+  {
+    "objectID": "posts/004_vit_attention_mask/englert_ai_4_vit_attention_mask.html#code-snippet",
+    "href": "posts/004_vit_attention_mask/englert_ai_4_vit_attention_mask.html#code-snippet",
+    "title": "Why Do Vision Transformers Need So Much Data and How to (Partially) Fix It?",
+    "section": "Code Snippet",
+    "text": "Code Snippet\nHere’s the code to generate the attention bias:\ndef get_soft_spatial_attention_bias(temperature: float, img_size: int, patch_size: int) -&gt; torch.Tensor:\n    \"\"\"\n    Create a soft spatial attention bias based on Euclidean distance between image patch positions.\n    \"\"\"\n    # Create a [H*W, 2] grid of 2D positions\n    coords = torch.stack(torch.meshgrid(\n        torch.arange(img_size // patch_size),\n        torch.arange(img_size // patch_size),\n        indexing='xy'), dim=-1\n    )\n    coords = coords.reshape(-1, 2)  # [num_tokens, 2]\n\n    # Compute pairwise squared Euclidean distances: [num_tokens, num_tokens]\n    dists = torch.cdist(coords.float(), coords.float(), p=2)\n\n    # Apply temperature\n    bias = torch.softmax(-dists / temperature, dim=-1)\n    bias = torch.log(bias)\n\n    # Reshape to [1, 1, num_tokens, num_tokens] for use in attention\n    bias = bias.unsqueeze(0).unsqueeze(0)\n\n    return bias\nWe add this bias to the attention logits. It acts like a soft mask that encourages each token to attend mostly to nearby tokens — very much like a convolution. As training progresses, we increase the temperature to flatten the bias, eventually restoring global attention."
   },
   {
     "objectID": "posts/001_inverted_pendulum/englert_ai_1_cart_physics.html",
@@ -151,6 +193,6 @@
     "href": "archive.html",
     "title": "Archive",
     "section": "",
-    "text": "Order By\n       Default\n         \n          Date - Oldest\n        \n         \n          Date - Newest\n        \n         \n          Title\n        \n     \n  \n    \n      \n      \n    \n\n\n\n\n\nDate\n\n\nTitle\n\n\n\n\n\n\nApr 20, 2025\n\n\nControlling a Vocal Tract With a Neural Network\n\n\n\n\nJul 29, 2023\n\n\nBalancing the Inverted Pendulum: An Introduction to Fuzzy Logic Control\n\n\n\n\nJul 26, 2023\n\n\n2D Physics of The Inverted Pendulum on a Cart\n\n\n\n\n\nNo matching items"
+    "text": "Order By\n       Default\n         \n          Date - Oldest\n        \n         \n          Date - Newest\n        \n         \n          Title\n        \n     \n  \n    \n      \n      \n    \n\n\n\n\n\nDate\n\n\nTitle\n\n\n\n\n\n\nJul 9, 2025\n\n\nWhy Do Vision Transformers Need So Much Data and How to (Partially) Fix It?\n\n\n\n\nApr 20, 2025\n\n\nControlling a Vocal Tract With a Neural Network\n\n\n\n\nJul 29, 2023\n\n\nBalancing the Inverted Pendulum: An Introduction to Fuzzy Logic Control\n\n\n\n\nJul 26, 2023\n\n\n2D Physics of The Inverted Pendulum on a Cart\n\n\n\n\n\nNo matching items"
   }
 ]
