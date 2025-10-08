@@ -10,7 +10,1307 @@
 <atom:link href="https://www.englert.ai/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.6.42</generator>
-<lastBuildDate>Tue, 08 Jul 2025 22:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sat, 23 Aug 2025 22:00:00 GMT</lastBuildDate>
+<item>
+  <title>Self-Supervised Data Pruning for Large-Scale Datasets</title>
+  <dc:creator>Bruno Englert</dc:creator>
+  <link>https://www.englert.ai/posts/005_visual_similarity_sampling/englert_ai_5_visual_similarity_sampling.html</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<section id="tldr" class="level1">
+<h1>TL;DR</h1>
+<ul>
+<li><strong>Goal.</strong> From a huge <em>unlabeled</em> dataset, keep a <strong>small, diverse</strong> subset.</li>
+<li><strong>Pipeline.</strong> (1) turn every item into a vector (<strong>embeddings</strong>) → (2) select <strong>spread‑out</strong> points in that space.</li>
+<li><strong>Best combo (in our tests).</strong> <strong>SwAV</strong> embeddings + <strong>stochastic Minimum‑Distance Sampling (MDS)</strong>.</li>
+<li><strong>Key trick.</strong> Choose the distance threshold <strong><img src="https://latex.codecogs.com/png.latex?%5Cdelta"></strong> from a <strong>single global distance histogram</strong> so collisions stay rare ⇒ near‑linear growth in <strong>k</strong> (kept size).</li>
+<li><strong>Scale.</strong> GPU‑friendly; histogram pre‑aggregation + batched proposals make <strong>million‑scale</strong> runs practical.</li>
+</ul>
+</section>
+<section id="introduction" class="level1">
+<h1>Introduction</h1>
+<p><img style="float: left; padding-right: 10px; padding-top: 10px; padding-bottom: 10px; padding-left: 10px;" width="30%" src="https://www.englert.ai/posts/005_visual_similarity_sampling/plane_sunset.png"></p>
+<p>Machine learning is increasingly applied in domains like healthcare, finance, and autonomous systems. However, the performance of these models depends heavily on the <strong>quality and diversity</strong> of the data used during training. While self-supervised learning (SSL) has reduced our reliance on labeled data, most downstream tasks—such as classification, detection, or segmentation—still require labeled datasets to perform well. Labeling data is expensive and the challenge becomes extremely severe with video data. Just one hour of video can produce around 108,000 frames and consume roughly 100GB of uncompressed storage. This leads to two major issues:</p>
+<ul>
+<li><strong>(1) Labeling visually similar and redundant data:</strong> When annotation is costly, we want to avoid labeling frames that are nearly identical, as they contribute little new information.</li>
+<li><strong>(2) Storing and processing massive datasets</strong>: In domains like autonomous driving, thousands of hours of driving footage can quickly balloon to petabytes of data, making storage and processing a major bottleneck.</li>
+</ul>
+<p>In both cases, the core problem isn’t data scarcity—it’s <strong>data redundancy</strong>. Most video frames, especially in steady driving scenes, are visually repetitive. To make data more manageable and labeling more efficient, we have to reduce redundancy by removing near-duplicate frames. However, we have to do this removal in such a way to preserve a <strong>diverse subset</strong> that reflects the full domain diversity of the original data. This motivates the search for approaches that reduce labeling and storage costs by automatically identifying and discarding redundant data.</p>
+<p>This is typically addressed through <strong>downsampling</strong>, either randomly or via domain-specific heuristics. For example, self-driving datasets may filter out temporally or spatially adjacent frames (using timestamps or GPS). However, these heuristics operate on metadata—not visual content—and can miss redundancies that are obvious to the eye. For example, a highway scene may look visually identical across multiple different GPS locations and thus would be able to pass such heuristic filters.</p>
+<p>Another alternative is active learning, where a model selects the most informative unlabeled samples based on an existing labeled dataset. However, active learning assumes access to labels and often relies on pretrained models—resources that are not always available for a lot of unique domains, such as farming and medicine. In contrast, this work focuses on a <strong>fully self-supervised setting</strong>, where no labels are available. This makes the problem harder, but also more general and applicable to any real-world scenarios, especially in early-stage pipelines, or in domains where annotations are scarce or costly. Moreover, by removing labels from the loop, we avoid injecting annotation bias or propagating label noise, which can skew the sampling process.</p>
+<p>To make this work, a method is needed that satisfies three key criteria:</p>
+<ul>
+<li><strong>(1)</strong> Capture visual similarity between datapoints in a meaningful way</li>
+<li><strong>(2)</strong> Operate without any labels</li>
+<li><strong>(3)</strong> Scale to millions of datapoints efficiently</li>
+</ul>
+<p>This research strictly focuses on that setting: selecting diverse, representative subsets from large, unlabeled datasets. Our goal is not to find the most “interesting” or “critical” moments—such as anomalies or accidents, since such a criteria would be difficult to define (or even impossible) for a self-supervised method. Instead, we define a more tractable objective: remove redundancy by selecting datapoints that are as <strong>visually dissimilar</strong> as possible. While this is an assumption, it aligns with the intuition that dissimilar datapoints span a wider range of content and provide better coverage of the full dataset.</p>
+<p>To select based on visual dissimilarity, we need to define what visual similarity means. However, this is inherently subjective and hard to formalize. To address this, we adopt a common assumption in the deep learning: the structure of high-dimensional <strong>feature vectors</strong>, extracted from models, can serve as a proxy for perceptual similarity. If two images are close in this feature space, they are likely to be visually similar. This allows us to avoid hand-crafting similarity metrics or relying on fragile heuristics. Instead, we use the output of an off-the-shelf self-supervised model to represent each datapoint in a feature space, and apply simple distance metrics (e.g., Euclidean) to estimate visual dissimilarity.</p>
+<p>These embeddings form as an abstraction of the input data and serve as the foundation for sampling algorithms that identify <strong>maximally diverse subsets</strong>. The result is a fully self-supervised pipeline for label-free redundancy reduction and subset selection, domain-agnostic, and scalable to large-scale dataset sizes. We now describe this pipeline in detail, beginning with the embeddings that define visual similarity, and then turning to the sampling strategies that enforce diversity.</p>
+</section>
+<section id="method" class="level1">
+<h1>Method</h1>
+<p>At a high level, the pipeline has two stages:</p>
+<ol type="1">
+<li><strong>Feature embedding</strong> — map each datapoint (e.g.&nbsp;images) to a vector space where Euclidean distance correlates with visual similarity.</li>
+<li><strong>Diverse subsampling</strong> — pick <strong>k</strong> points that are well spread out in that space.</li>
+</ol>
+<p>We compare three embedding sources and two selection strategies.</p>
+<section id="generating-feature-vectors" class="level2">
+<h2 class="anchored" data-anchor-id="generating-feature-vectors">Generating Feature Vectors</h2>
+<p>To turn datapoints into vectors, we compared three different embedding sources.</p>
+<ol type="1">
+<li><strong>Pretrained classifier (supervised, baseline).</strong>
+<ul>
+<li><strong>What.</strong> Train a classifier and take features from the penultimate layer.</li>
+<li><strong>Why include it.</strong> Familiar reference; useful sanity check, but it <strong>uses labels</strong> and thus doesn’t meet the self‑supervised constraint.</li>
+</ul></li>
+<li><strong>AutoEncoder (SSL).</strong>
+<ul>
+<li><strong>What.</strong> Encoder–decoder trained to reconstruct inputs.</li>
+<li><strong>Why include it.</strong> A classic SSL baseline: it compresses inputs into a latent that preserves reconstruction‑relevant information. Easy to train in new domains.</li>
+</ul></li>
+<li><strong>SwAV (SSL).</strong>
+<ul>
+<li><strong>What.</strong> A self‑supervised clustering/contrastive method that pulls augmented views together via codebook assignments and pushes different images apart.</li>
+<li><strong>Why we like it.</strong> In practice, SwAV features produced well-structured spaces that work great with distance‑based selection.</li>
+</ul></li>
+</ol>
+</section>
+<section id="sampling-strategies" class="level2">
+<h2 class="anchored" data-anchor-id="sampling-strategies">Sampling Strategies</h2>
+<p>Once datapoints have been mapped into any of the embedding spaces described above, the next step is to select a subset that is both compact and diverse. Formally, one might wish to choose the subset of size <img src="https://latex.codecogs.com/png.latex?k"> whose elements are maximally spread out, for example by maximizing the minimum pairwise distance among them. In theory, this could be done by considering every possible subset of size <img src="https://latex.codecogs.com/png.latex?k"> from <img src="https://latex.codecogs.com/png.latex?N"> datapoints. In practice, however, this is hopeless: the number of possibilities grows as <img src="https://latex.codecogs.com/png.latex?%5Cbinom%7BN%7D%7Bk%7D">, which becomes astronomically large even for moderate values of <img src="https://latex.codecogs.com/png.latex?N"> and <img src="https://latex.codecogs.com/png.latex?k">. With datasets containing millions of examples, an exhaustive search is entirely infeasible.</p>
+<p>On top of this combinatorial challenge, the geometry of real data is highly non-uniform. Feature spaces typically contain dense clusters of very similar points alongside a handful of extreme outliers. If we simply try to “spread points apart,” naïve methods end up either oversampling the outliers or oversampling the clusters, producing subsets that are not truly representative. The real goal of subset selection is therefore not just diversity in the abstract, but <strong>re-balancing the data geometry</strong> so that the final subset resembles a more uniform cover of the original distribution.</p>
+<p>Because of these challenges, we turn to approximate methods that capture the spirit of the max–min objective—selecting points that are as spread out as possible—without requiring combinatorial search. In this work, we focus on two such strategies: <strong>Furthest Neighbor Sampling (FNS)</strong> and <strong>Minimum Distance Sampling (MDS)</strong>.</p>
+<section id="furthest-neighbor-sampling-fns" class="level3">
+<h3 class="anchored" data-anchor-id="furthest-neighbor-sampling-fns">Furthest Neighbor Sampling (FNS)</h3>
+<p>Furthest Neighbor Sampling (FNS) is a greedy approximation to the max–min objective. The algorithm begins by choosing a random point. At each subsequent step it selects the point that is furthest away from the set already chosen. This rule tends to spread points widely across the space and often yields good approximations of the optimal subset.</p>
+<p>However, a critical caveat is that the feature space of real datasets is rarely uniform. Instead, it usually contains dense clusters of very similar points alongside a small number of extreme outliers. When FNS is applied directly to such a space, the outliers dominate: because they are extremely far from everything else, they are almost always selected first. As a result, the chosen subset ends up being non-uniform, filled with edge cases rather than representative examples of the data distribution.</p>
+<p>A way to address this is to apply a structure-preserving dimensionality reduction method such as UMAP or t-SNE before FNS. These methods preserve local neighborhoods while compressing global distances. In effect, they pull outliers closer to the main data cloud and make the overall distribution appear more uniform. When FNS is run in this transformed space, the resulting subset better reflects the true variety of the dataset rather than being dominated by outliers. The trade-off is that the dimensionality reduction itself introduces additional computation and memory cost, which can become limiting at very large scale.</p>
+<p><strong>Algorithm:</strong></p>
+<div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> np</span>
+<span id="cb1-2"></span>
+<span id="cb1-3"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> furthest_neighbors(all_points, downsampled_size, seed<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>):</span>
+<span id="cb1-4">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"""</span></span>
+<span id="cb1-5"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    all_points: (N, D) array of embeddings</span></span>
+<span id="cb1-6"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    downsampled_size: number of points to select (k &lt;= N)</span></span>
+<span id="cb1-7"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    Returns: indices of the k selected points (shape: [k])</span></span>
+<span id="cb1-8"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    """</span></span>
+<span id="cb1-9">    rng <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.random.default_rng(seed)</span>
+<span id="cb1-10">    N <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> all_points.shape[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>]</span>
+<span id="cb1-11">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 1) start from a random point</span></span>
+<span id="cb1-12">    first <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">int</span>(rng.integers(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, N))</span>
+<span id="cb1-13">    selected <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> [first]</span>
+<span id="cb1-14"></span>
+<span id="cb1-15">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 2) d_min[i] = distance from point i to the nearest selected point</span></span>
+<span id="cb1-16">    d_min <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">sum</span>((all_points <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> all_points[first]) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">**</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, axis<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">**</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.5</span></span>
+<span id="cb1-17">    d_min[first] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1.0</span>  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># mark as taken</span></span>
+<span id="cb1-18"></span>
+<span id="cb1-19">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 3) greedily add the furthest point, then update d_min</span></span>
+<span id="cb1-20">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> _ <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">range</span>(downsampled_size):</span>
+<span id="cb1-21">        i <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">int</span>(np.argmax(d_min))</span>
+<span id="cb1-22">        selected.append(i)</span>
+<span id="cb1-23">        d <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">sum</span>((all_points <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> all_points[i]) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">**</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, axis<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">**</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.5</span></span>
+<span id="cb1-24">        d_min <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.minimum(d_min, d)</span>
+<span id="cb1-25">        d_min[i] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1.0</span></span>
+<span id="cb1-26">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> np.array(selected, dtype<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">int</span>)</span></code></pre></div>
+</section>
+<section id="minimum-distance-sampling-mds" class="level3">
+<h3 class="anchored" data-anchor-id="minimum-distance-sampling-mds">Minimum Distance Sampling (MDS)</h3>
+<p>Minimum Distance Sampling (MDS) approaches the problem from the opposite direction. Instead of explicitly maximizing the distance between points, it enforces a rule: no two selected points may be closer than a chosen threshold <img src="https://latex.codecogs.com/png.latex?%5Cdelta">. The algorithm repeatedly proposes random candidates and accepts them if they are at least <img src="https://latex.codecogs.com/png.latex?%5Cdelta"> away from all previously selected points. Otherwise, the candidate is rejected and a new one is tried. Conceptually, this avoids clustering by simply forbidding points from sitting too close together. Where FNS tries to “push” points outward, MDS succeeds by “keeping space” between them.</p>
+<p>The efficiency of MDS comes from the two properties of this algorithm. First, we don’t need UMAP or t-SNE. Since this algorithm proposes new points randomly, the issue with outliers goes away. Second, the proposed point candidates at each iteration can be done in a batched way, which greatly speeds up this algorithm.</p>
+<p>With a well-chosen <img src="https://latex.codecogs.com/png.latex?%5Cdelta">, the acceptance rate remains healthy and the number of accepted points grows almost linearly, making the method feasible at million-point scale. But the challenge is precisely in choosing <img src="https://latex.codecogs.com/png.latex?%5Cdelta">. If <img src="https://latex.codecogs.com/png.latex?%5Cdelta"> is too small, many near-duplicates slip in, and the subset is not truly diverse. If <img src="https://latex.codecogs.com/png.latex?%5Cdelta"> is too large, the algorithm spends most of its time rejecting candidates, leading to excessive collisions and wasted computation.</p>
+<p><strong>Algorithm:</strong></p>
+<div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> numpy</span>
+<span id="cb2-2"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> np</span>
+<span id="cb2-3"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> torch</span>
+<span id="cb2-4"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> tqdm <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> tqdm</span>
+<span id="cb2-5"></span>
+<span id="cb2-6"></span>
+<span id="cb2-7"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> min_distance_sample(all_points, downsampled_size, delta, batch_size<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">512</span>, seed<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>):</span>
+<span id="cb2-8">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"""</span></span>
+<span id="cb2-9"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    all_points: (N, D) embeddings</span></span>
+<span id="cb2-10"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    downsampled_size: number of points to select</span></span>
+<span id="cb2-11"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    delta: minimum L2 distance between any two selected points</span></span>
+<span id="cb2-12"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    batch_size: number of random proposals evaluated per loop</span></span>
+<span id="cb2-13"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    Returns: indices of selected points (shape: [k])</span></span>
+<span id="cb2-14"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    """</span></span>
+<span id="cb2-15">    num_points <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> all_points.shape[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>]</span>
+<span id="cb2-16">    success <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">False</span></span>
+<span id="cb2-17">    all_points_gpu <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> torch.from_numpy(all_points).cuda().unsqueeze(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>) <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 1, n_points, dim</span></span>
+<span id="cb2-18">    rng <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.random.default_rng(seed)</span>
+<span id="cb2-19">    </span>
+<span id="cb2-20">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">with</span> tqdm(total<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>num_points) <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> pbar:</span>
+<span id="cb2-21">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> trial <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">range</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span>):</span>
+<span id="cb2-22">            pbar.set_description(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Trial </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{}</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">, opt_min_dist: </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{}</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">format</span>(trial, opt_min_dist))</span>
+<span id="cb2-23"></span>
+<span id="cb2-24">            init_index <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.random.randint(low<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, high<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>num_points)</span>
+<span id="cb2-25">            selectable_indices <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> torch.arange(num_points).cuda()</span>
+<span id="cb2-26">            selectable_mask <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> torch.ones(num_points).cuda().<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">bool</span>()</span>
+<span id="cb2-27">            selectable_ctr <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> num_points <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span>
+<span id="cb2-28">            selectable_mask[init_index] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">False</span></span>
+<span id="cb2-29">            rv_indices <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> [init_index]</span>
+<span id="cb2-30"></span>
+<span id="cb2-31">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">while</span> (downsampled_size <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">len</span>(rv_indices)) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&lt;=</span> (selectable_ctr) <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">and</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">not</span> success:</span>
+<span id="cb2-32">                <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> batch_size <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&lt;</span> selectable_ctr:</span>
+<span id="cb2-33">                    random_indices <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> rng.choice(selectable_ctr, size<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>batch_size, replace<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">False</span>)</span>
+<span id="cb2-34">                <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">else</span>:</span>
+<span id="cb2-35">                    random_indices <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> numpy.arange(selectable_ctr)</span>
+<span id="cb2-36"></span>
+<span id="cb2-37">                proposed_indices <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> selectable_indices[selectable_mask].cpu().numpy()</span>
+<span id="cb2-38">                proposed_indices <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> proposed_indices[random_indices]</span>
+<span id="cb2-39">                proposed_len <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">len</span>(proposed_indices)</span>
+<span id="cb2-40"></span>
+<span id="cb2-41">                dist <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> torch.cdist(</span>
+<span id="cb2-42">                    all_points_gpu[:, proposed_indices, :],</span>
+<span id="cb2-43">                    all_points_gpu[:, np.concatenate([proposed_indices, np.asarray(rv_indices)]), :],</span>
+<span id="cb2-44">                    p<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2.0</span></span>
+<span id="cb2-45">                )</span>
+<span id="cb2-46">                dist <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> dist[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>]</span>
+<span id="cb2-47">                dist[<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">range</span>(proposed_len), <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">range</span>(proposed_len)] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> opt_min_dist <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span></span>
+<span id="cb2-48">                decision_mtx <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> torch.le(dist, opt_min_dist).to(torch.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">int</span>)</span>
+<span id="cb2-49"></span>
+<span id="cb2-50">                <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># remove proposed points that collide with the already selected points</span></span>
+<span id="cb2-51">                rejected_mask <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> torch.ne(torch.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">sum</span>(decision_mtx[:, proposed_len:], dim<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>), <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>).reshape(<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>).to(torch.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">int</span>)</span>
+<span id="cb2-52">                rejected_mask <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> rejected_mask.cpu().numpy()</span>
+<span id="cb2-53"></span>
+<span id="cb2-54">                <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># instead of max independent set, just do a greedy</span></span>
+<span id="cb2-55">                accepted_indices <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> []</span>
+<span id="cb2-56">                decision_mtx <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> decision_mtx[:proposed_len, :proposed_len].cpu().numpy()</span>
+<span id="cb2-57">                <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> row <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">range</span>(proposed_len):</span>
+<span id="cb2-58">                    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> rejected_mask[row] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>:</span>
+<span id="cb2-59">                        accepted_indices.append(row)</span>
+<span id="cb2-60">                        rejected_mask <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.logical_or(rejected_mask, decision_mtx[row, :])</span>
+<span id="cb2-61"></span>
+<span id="cb2-62">                accepted_indices <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> proposed_indices[accepted_indices].tolist()</span>
+<span id="cb2-63">                rejected_indices <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> proposed_indices[rejected_mask].tolist()</span>
+<span id="cb2-64">                rejected_indices.extend(accepted_indices)</span>
+<span id="cb2-65"></span>
+<span id="cb2-66">                rv_indices.extend(accepted_indices)</span>
+<span id="cb2-67">                selectable_mask[rejected_indices] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span></span>
+<span id="cb2-68">                selectable_ctr <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-=</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">len</span>(rejected_indices)</span>
+<span id="cb2-69"></span>
+<span id="cb2-70">                <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> downsampled_size <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&lt;=</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">len</span>(rv_indices):</span>
+<span id="cb2-71">                    success <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span></span>
+<span id="cb2-72">                pbar.update(n<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">len</span>(accepted_indices))    </span>
+<span id="cb2-73"></span>
+<span id="cb2-74">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> success:</span>
+<span id="cb2-75">                <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">break</span></span>
+<span id="cb2-76">                </span>
+<span id="cb2-77">            <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Slightly relax delta if we ran out of options late in the process</span></span>
+<span id="cb2-78">            opt_min_dist <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*=</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.9</span></span>
+<span id="cb2-79">            pbar.reset()</span>
+<span id="cb2-80"></span>
+<span id="cb2-81">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">not</span> success:</span>
+<span id="cb2-82">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">raise</span> <span class="pp" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">Exception</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"no valid min distance found or not enough points"</span>)</span>
+<span id="cb2-83"></span>
+<span id="cb2-84">    rv_indices <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> rv_indices[:downsampled_size]</span>
+<span id="cb2-85">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> rv_indices, opt_min_dist</span></code></pre></div>
+<section id="choosing-a-good-delta" class="level4">
+<h4 class="anchored" data-anchor-id="choosing-a-good-delta">Choosing a good <img src="https://latex.codecogs.com/png.latex?%5Cdelta"></h4>
+<p>The effectiveness of MDS depends entirely on the choice of the minimum distance threshold <img src="https://latex.codecogs.com/png.latex?%5Cdelta">. If <img src="https://latex.codecogs.com/png.latex?%5Cdelta"> is too small, then many near-duplicate points will be accepted and the subset will not be truly diverse. If <img src="https://latex.codecogs.com/png.latex?%5Cdelta"> is too large, then most proposals will be rejected and the algorithm may not be able to reach the target subset size at all.</p>
+<p>We can formalize this by introducing a simple feasibility condition. Let <img src="https://latex.codecogs.com/png.latex?N"> denote the total number of points in the dataset, and let <img src="https://latex.codecogs.com/png.latex?h"> represent the expected number of points that get “discarded” whenever one new point is accepted at distance <img src="https://latex.codecogs.com/png.latex?%5Cdelta">. To successfully select a subset of size <img src="https://latex.codecogs.com/png.latex?k">, the following inequality must hold:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0Ah%20%5Ccdot%20k%20%3C%20N.%0A"></p>
+<p>Intuitively, this condition says that the total number of discarded points must be smaller than the dataset size; otherwise, we will run out of candidates before reaching <img src="https://latex.codecogs.com/png.latex?k">.</p>
+<p>The difficulty is that <img src="https://latex.codecogs.com/png.latex?h"> is not known in advance. It depends on the data distribution and on the chosen <img src="https://latex.codecogs.com/png.latex?%5Cdelta">. Computing <img src="https://latex.codecogs.com/png.latex?h"> exactly would require all pairwise distances, which is intractable at large scale. Instead, we estimate it statistically. The idea is to randomly sample a set of points, measure their distances to the rest of the dataset, and build a distribution of “typical distances.” From this empirical distribution we can approximate, for any candidate <img src="https://latex.codecogs.com/png.latex?%5Cdelta">, how many points would be excluded on average.</p>
+<p>In practice, this is done by constructing a histogram of distances for many randomly chosen reference points. The histogram gives us an empirical cumulative distribution function: for a given <img src="https://latex.codecogs.com/png.latex?%5Cdelta">, we can look up the expected fraction of points within that radius. By iterating through the histogram bins, we can find the largest <img src="https://latex.codecogs.com/png.latex?%5Cdelta"> that still satisfies <img src="https://latex.codecogs.com/png.latex?h%20%5Ccdot%20k%20%3C%20N">. That value becomes the operating threshold for MDS.</p>
+<p>This statistical estimation makes MDS feasible in large-scale settings. Instead of computing billions of pairwise distances, we rely on a compressed global summary of the dataset’s geometry, which provides a principled way to set <img src="https://latex.codecogs.com/png.latex?%5Cdelta"> while keeping the method efficient and scalable.</p>
+<p><strong>Algorithm for Estimating <img src="https://latex.codecogs.com/png.latex?~%5Cdelta">:</strong></p>
+<div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> estimate_delta(all_points, downsampled_size, batch_size, tolerance<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.5</span>):</span>
+<span id="cb3-2">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"""</span></span>
+<span id="cb3-3"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    all_points: (N, D) embeddings</span></span>
+<span id="cb3-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    downsampled_size: number of points to select</span></span>
+<span id="cb3-5"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    batch_size: number of random proposals evaluated per loop</span></span>
+<span id="cb3-6"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    tolerance: slack factor for the feasibility condition</span></span>
+<span id="cb3-7"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    Returns: estimated delta value</span></span>
+<span id="cb3-8"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    """</span></span>
+<span id="cb3-9">    num_points <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> all_points.shape[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>]</span>
+<span id="cb3-10">    all_points_gpu <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> torch.from_numpy(all_points).cuda()</span>
+<span id="cb3-11">    histograms <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> []</span>
+<span id="cb3-12"></span>
+<span id="cb3-13">    num_points_to_sample <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">int</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> math.sqrt(num_points))</span>
+<span id="cb3-14">    num_points_to_sample <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">min</span>(num_points_to_sample, num_points)</span>
+<span id="cb3-15">    num_points_to_sample <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> num_points_to_sample <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">//</span> batch_size <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> batch_size</span>
+<span id="cb3-16">    random_point_indices <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">list</span>(random.sample(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">list</span>(np.arange(num_points)), num_points_to_sample))</span>
+<span id="cb3-17"></span>
+<span id="cb3-18">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> i <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> tqdm(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">range</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, num_points_to_sample, batch_size)):</span>
+<span id="cb3-19">        ref_all_points <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> all_points_gpu[random_point_indices[i:i <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> batch_size], :]</span>
+<span id="cb3-20">        dist_batched <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> torch.cdist(ref_all_points.unsqueeze(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>), all_points_gpu.unsqueeze(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>), p<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2.0</span>)[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>]</span>
+<span id="cb3-21">        dist_batched <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> dist_batched.flatten()</span>
+<span id="cb3-22">        counts, bins <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> torch_histogram( dist_batched, dist_batched.size(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">//</span> batch_size <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">//</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span>)</span>
+<span id="cb3-23">        histograms.append((counts, bins))</span>
+<span id="cb3-24"></span>
+<span id="cb3-25">    histograms <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> [(counts.cpu().numpy(), bins.cpu().numpy()) <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> (counts, bins) <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> histograms]</span>
+<span id="cb3-26">    merged_count, merged_bins <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> histograms[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>]</span>
+<span id="cb3-27"></span>
+<span id="cb3-28">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> (counts, bins) <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> histograms[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>:]:</span>
+<span id="cb3-29">        merged_count, merged_bins <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> merge_hist([merged_count, merged_bins], [counts, bins])</span>
+<span id="cb3-30"></span>
+<span id="cb3-31">    merged_count <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> merged_count <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> num_points_to_sample</span>
+<span id="cb3-32">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># remove zeros distances</span></span>
+<span id="cb3-33">    merged_count, merged_bins <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> merged_count[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>:], merged_bins[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>:]</span>
+<span id="cb3-34">    cumsum_counts <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.cumsum(merged_count, axis<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>)</span>
+<span id="cb3-35">    opt_min_dist <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span></span>
+<span id="cb3-36"></span>
+<span id="cb3-37">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> i <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> tqdm(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">range</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">len</span>(cumsum_counts))):</span>
+<span id="cb3-38">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> (num_points <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> tolerance) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&lt;</span> (cumsum_counts[i] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> downsampled_size):</span>
+<span id="cb3-39">            opt_min_dist <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> merged_bins[i<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>]</span>
+<span id="cb3-40">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">break</span></span>
+<span id="cb3-41">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> opt_min_dist</span>
+<span id="cb3-42"></span>
+<span id="cb3-43"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> torch_histogram(xs, bins):</span>
+<span id="cb3-44">    <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">min</span>, <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">max</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> xs.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">min</span>(), xs.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">max</span>()</span>
+<span id="cb3-45">    counts <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> torch.histc(xs, bins, <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">min</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">min</span>, <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">max</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">max</span>)</span>
+<span id="cb3-46">    boundaries <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> torch.linspace(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">min</span>, <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">max</span>, bins <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>)</span>
+<span id="cb3-47">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> counts, boundaries</span>
+<span id="cb3-48"></span>
+<span id="cb3-49"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> interpolate_hist(edgesint, edges, hist):</span>
+<span id="cb3-50">    cumhist <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.hstack([<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, np.cumsum(hist)])</span>
+<span id="cb3-51">    cumhistint <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.interp(edgesint, edges, cumhist)</span>
+<span id="cb3-52">    histint <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.diff(cumhistint)</span>
+<span id="cb3-53">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> histint</span>
+<span id="cb3-54"></span>
+<span id="cb3-55"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> merge_hist(a, b):</span>
+<span id="cb3-56">    edgesa <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> a[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>]</span>
+<span id="cb3-57">    edgesb <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> b[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>]</span>
+<span id="cb3-58">    da <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> edgesa[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> edgesa[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>]</span>
+<span id="cb3-59">    db <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> edgesb[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> edgesb[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>]</span>
+<span id="cb3-60">    dint <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">min</span>([da, db])</span>
+<span id="cb3-61">    <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">min</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">min</span>(np.hstack([edgesa, edgesb]))</span>
+<span id="cb3-62">    <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">max</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">max</span>(np.hstack([edgesa, edgesb]))</span>
+<span id="cb3-63">    edgesc <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.arange(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">min</span>, <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">max</span>, dint)</span>
+<span id="cb3-64">    histaint <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> interpolate_hist(edgesc, edgesa, a[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>])</span>
+<span id="cb3-65">    histbint <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> interpolate_hist(edgesc, edgesb, b[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>])</span>
+<span id="cb3-66">    c <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> histaint <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> histbint</span>
+<span id="cb3-67">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> c, edgesc</span></code></pre></div>
+</section>
+<section id="relation-to-fns" class="level4">
+<h4 class="anchored" data-anchor-id="relation-to-fns">Relation to FNS</h4>
+<p>FNS <em>maximizes</em> the minimum pairwise distance; MDS <strong>enforces</strong> a given minimum distance. If you set <img src="https://latex.codecogs.com/png.latex?%5Cdelta"> to the minimum pairwise distance achieved by FNS after <strong>k</strong> picks, then any MDS solution is <strong>feasible</strong> for that threshold, and FNS’s set is one feasible solution as well. In general, FNS solves a max‑min objective (greedy 2‑approx to k‑center); MDS solves the feasibility version for a chosen threshold, trading exactness for speed and scale.</p>
+</section>
+</section>
+</section>
+</section>
+<section id="experiment-setup" class="level1">
+<h1>Experiment Setup</h1>
+<p>Evaluating the quality of a sampled subset is not straightforward. The central challenge is that “similarity” is inherently subjective. If there existed a perfect, universal metric to determine whether two datapoints were redundant, then the need for subset selection strategies would disappear. Instead, we have to rely on <strong>proxy evaluation</strong>.</p>
+<p>The proxy we adopt is based on <strong>downstream classification performance</strong>. The idea is simple:</p>
+<ol type="1">
+<li>A dataset is first reduced using a given sampling method.</li>
+<li>A model — the <em>probe model</em> — is trained on a downstream task on this reduced dataset.</li>
+<li>The trained model is then evaluated on a test set.</li>
+</ol>
+<p>If the probe model consistently achieves higher accuracy when trained on subsets produced by one sampling strategy versus another, we interpret that as evidence that the strategy yields a more informative and diverse subset. In other words, instead of directly measuring diversity, we evaluate its practical consequence: <strong>how well does the reduced dataset support learning?</strong></p>
+<p>However, this proxy evaluation is inherently noisy. Both the subsampling and the model training are stochastic processes. A single run may produce an accuracy value that is not representative of the underlying method. To address this, each experiment is repeated many times, and results are aggregated. Thus, determining <em>how many repetitions are enough</em> is important. Given that the standard deviation of probe accuracy is around 0.3%, and that we want to reliably detect performance differences of ±0.05% with 95% confidence, statistical power analysis suggests a sample size of about 150 runs per sampling method and dataset pair. This ensures that even small but consistent differences can be detected with high certainty.</p>
+<div id="fig-eval_method" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-eval_method-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://www.englert.ai/posts/005_visual_similarity_sampling/subsampling_testing.png" class="img-fluid figure-img" style="width:60.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-eval_method-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: The system for testing the subsampling methods. The only changing variable is the sampling method denoted by a dotted rectangle.
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="results" class="level1">
+<h1>Results</h1>
+<section id="cifar-10-5k-from-50k" class="level2">
+<h2 class="anchored" data-anchor-id="cifar-10-5k-from-50k">CIFAR-10 (5k from 50k)</h2>
+<p>CIFAR-10 is an image classification dataset with 50,000 training and 10,000 test images across 10 classes. Subsets of 5,000 training images were selected in each iteration.</p>
+<p>Two key findings:</p>
+<ol type="1">
+<li><p><strong>FNS required UMAP to be competitive.</strong> Without UMAP, FNS underperformed even random selection, as outliers dominated the subsets. With UMAP, however, FNS improved considerably, and in combination with SwAV achieved the highest accuracy overall (82.72%).</p></li>
+<li><p><strong>MDS was stable across conditions.</strong> MDS performed consistently close to or above baseline regardless of UMAP, and paired especially well with SwAV. This stability makes it preferable for large-scale settings, where the cost of dimensionality reduction (such as UMAP) is prohibitive.</p></li>
+</ol>
+<div id="tbl-result_cifar10" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-result_cifar10-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: Classification accuracy on CIFAR-10 when selecting 5k training samples out of 50k. Results compare embeddings (Supervised, AutoEncoder, SwAV), sampling strategies (Furthest Neighbor Sampling, Minimum Distance Sampling, or Uniform baseline), and the effect of UMAP dimensionality reduction (✅). Differences are reported relative to Uniform Random Sampling.
+</figcaption>
+<div aria-describedby="tbl-result_cifar10-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 22%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Embedding</th>
+<th>Sampling</th>
+<th style="text-align: center;">UMAP</th>
+<th style="text-align: center;">Mean Acc.</th>
+<th style="text-align: center;">Difference to Uniform Sampling</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>–</td>
+<td>Uniform</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">82.47%</td>
+<td style="text-align: center;">–</td>
+</tr>
+<tr class="even">
+<td>Supervised</td>
+<td>FNS</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">79.59%</td>
+<td style="text-align: center;">−2.88%</td>
+</tr>
+<tr class="odd">
+<td>AutoEncoder</td>
+<td>FNS</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">77.99%</td>
+<td style="text-align: center;">−4.48%</td>
+</tr>
+<tr class="even">
+<td>SwAV</td>
+<td>FNS</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">81.55%</td>
+<td style="text-align: center;">−0.91%</td>
+</tr>
+<tr class="odd">
+<td>Supervised</td>
+<td>FNS</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">82.50%</td>
+<td style="text-align: center;">+0.03%</td>
+</tr>
+<tr class="even">
+<td>AutoEncoder</td>
+<td>FNS</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">82.25%</td>
+<td style="text-align: center;">−0.22%</td>
+</tr>
+<tr class="odd">
+<td>SwAV</td>
+<td>FNS</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">82.72%</td>
+<td style="text-align: center;">+0.25%</td>
+</tr>
+<tr class="even">
+<td>Supervised</td>
+<td>MDS</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">82.48%</td>
+<td style="text-align: center;">+0.01%</td>
+</tr>
+<tr class="odd">
+<td>AutoEncoder</td>
+<td>MDS</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">82.34%</td>
+<td style="text-align: center;">−0.09%</td>
+</tr>
+<tr class="even">
+<td>SwAV</td>
+<td>MDS</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">82.65%</td>
+<td style="text-align: center;">+0.17%</td>
+</tr>
+<tr class="odd">
+<td>Supervised</td>
+<td>MDS</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">82.52%</td>
+<td style="text-align: center;">+0.05%</td>
+</tr>
+<tr class="even">
+<td>AutoEncoder</td>
+<td>MDS</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">82.47%%</td>
+<td style="text-align: center;">0.00%</td>
+</tr>
+<tr class="odd">
+<td>SwAV</td>
+<td>MDS</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">82.64%</td>
+<td style="text-align: center;">+0.17%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p><em>While the margins are small, they are consistent across 150 runs, making them statistically significant.</em></p>
+</section>
+<section id="effect-of-downsampling-size" class="level2">
+<h2 class="anchored" data-anchor-id="effect-of-downsampling-size">Effect of Downsampling Size</h2>
+<p>We next varied the subset size from 5k to 45k. At small subset sizes, diversity-aware sampling provided clear gains over random selection — for example, SwAV + MDS improved accuracy by +0.17% at 5k samples.</p>
+<div id="tbl-result_cifar10_downsample" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-result_cifar10_downsample-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;2: Effect of subset size on classification accuracy for CIFAR-10 when using SwAV embeddings with Minimum Distance Sampling (without dimensionality reduction). As the subset size increases from 5k to 45k, the relative gain over random sampling diminishes.
+</figcaption>
+<div aria-describedby="tbl-result_cifar10_downsample-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 27%">
+<col style="width: 24%">
+<col style="width: 24%">
+<col style="width: 24%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Downsample Size</th>
+<th style="text-align: center;">Random Uniform Sampling</th>
+<th style="text-align: center;">SwAV + No Dim Reduction + Minimum Distance Sampling</th>
+<th style="text-align: center;">Difference to Uniform Sampling</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>5000</td>
+<td style="text-align: center;">82.47%</td>
+<td style="text-align: center;">82.65%</td>
+<td style="text-align: center;">+0.17%</td>
+</tr>
+<tr class="even">
+<td>10000</td>
+<td style="text-align: center;">87.27%</td>
+<td style="text-align: center;">87.40%</td>
+<td style="text-align: center;">+0.13%</td>
+</tr>
+<tr class="odd">
+<td>15000</td>
+<td style="text-align: center;">89.58%</td>
+<td style="text-align: center;">89.71%</td>
+<td style="text-align: center;">+0.13%</td>
+</tr>
+<tr class="even">
+<td>20000</td>
+<td style="text-align: center;">90.70%</td>
+<td style="text-align: center;">90.81%</td>
+<td style="text-align: center;">+0.11%</td>
+</tr>
+<tr class="odd">
+<td>25000</td>
+<td style="text-align: center;">91.35%</td>
+<td style="text-align: center;">91.47%</td>
+<td style="text-align: center;">+0.12%</td>
+</tr>
+<tr class="even">
+<td>30000</td>
+<td style="text-align: center;">91.78%</td>
+<td style="text-align: center;">91.89%</td>
+<td style="text-align: center;">+0.11%</td>
+</tr>
+<tr class="odd">
+<td>35000</td>
+<td style="text-align: center;">92.07%</td>
+<td style="text-align: center;">92.21%</td>
+<td style="text-align: center;">+0.13%</td>
+</tr>
+<tr class="even">
+<td>40000</td>
+<td style="text-align: center;">92.43%</td>
+<td style="text-align: center;">92.46%</td>
+<td style="text-align: center;">+0.03%</td>
+</tr>
+<tr class="odd">
+<td>45000</td>
+<td style="text-align: center;">92.62%</td>
+<td style="text-align: center;">92.63%</td>
+<td style="text-align: center;">+0.01%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</section>
+<section id="complexity-and-scaling" class="level2">
+<h2 class="anchored" data-anchor-id="complexity-and-scaling">Complexity and Scaling</h2>
+<p>To understand scalability, we compared Furthest Neighbor Sampling (FNS) and Minimum Distance Sampling (MDS) on datasets of size 100,000 and 1,000,000 points, downsampling to varying subset sizes.</p>
+<p><strong>FNS.</strong> The incremental form of FNS computes one new distance per point when a center is added and maintains a nearest-distance vector. Over <img src="https://latex.codecogs.com/png.latex?k"> additions, this results in <img src="https://latex.codecogs.com/png.latex?O(N%C2%B7k)"> time and **<img src="https://latex.codecogs.com/png.latex?O(N%20+%20k)"> memory, where <img src="https://latex.codecogs.com/png.latex?N"> is the dataset size, and <img src="https://latex.codecogs.com/png.latex?k"> the subset size. For large <img src="https://latex.codecogs.com/png.latex?N">, the optional UMAP or t-SNE preprocessing dominates runtime and memory cost.</p>
+<p><strong>MDS.</strong> This method requires a minimum distance parameter, denoted <img src="https://latex.codecogs.com/png.latex?%5Cdelta">. A well-chosen <img src="https://latex.codecogs.com/png.latex?%5Cdelta"> ensures that in each iteration the number of selected points increases by one, keeping the step complexity approximately at <img src="https://latex.codecogs.com/png.latex?k%5E2"> and the memory complexity at <img src="https://latex.codecogs.com/png.latex?O(N%20+%20k)">. However, a badly chosen <img src="https://latex.codecogs.com/png.latex?%5Cdelta"> can lead to an undesirable step complexity of <img src="https://latex.codecogs.com/png.latex?O(N%5E2)"> due to an excessive number of collisions.</p>
+<p>Figure&nbsp;2 and Figure&nbsp;3 illustrate runtime scaling. MDS remains manageable even when selecting hundreds of thousands of points, while FNS runtime grows sharply with subset size, quickly becoming impractical at million-scale.</p>
+<div id="fig-100ksample" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-100ksample-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://www.englert.ai/posts/005_visual_similarity_sampling/synth_sample_100k.png" class="img-fluid figure-img" style="width:80.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-100ksample-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Empirical computational complexities for MDS and FNS on 100,000 points. The x-axis shows subset size, the y-axis runtime (seconds).
+</figcaption>
+</figure>
+</div>
+<div id="fig-1msample" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-1msample-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://www.englert.ai/posts/005_visual_similarity_sampling/synth_sample_1m.png" class="img-fluid figure-img" style="width:80.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-1msample-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Empirical computational complexities for MDS and FNS on 1,000,000 points. The x-axis shows subset size, the y-axis runtime (seconds).
+</figcaption>
+</figure>
+</div>
+<p><em>Note: Scaling experiments were conducted on an AMD Ryzen 9 3900x and Nvidia 1080 Ti graphics card.</em></p>
+</section>
+<section id="qualitative-results-for-video" class="level2">
+<h2 class="anchored" data-anchor-id="qualitative-results-for-video">Qualitative Results for Video</h2>
+<p>We also applied our pipeline to raw dashcam footage. Figure&nbsp;4 shows sampled frames from a driving sequence. The subset covers a wide range of situations (e.g., different lighting, traffic conditions, and road layouts) without oversampling visually redundant near-duplicate frames.</p>
+<div id="fig-viss_dashcam" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-viss_dashcam-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<video width="50%" src="nochange_zoomed.mp4" type="video/mp4" controls="">
+</video>
+<video width="50%" src="snow_zoomed.mp4" type="video/mp4" controls="">
+</video>
+<video width="50%" src="underground_zoomed.mp4" type="video/mp4" controls="">
+</video>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-viss_dashcam-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Dashcam video with selected frames. The red flashing corner means the current frame is selected.
+</figcaption>
+</figure>
+</div>
+</section>
+</section>
+<section id="conclusion" class="level1">
+<h1>Conclusion</h1>
+<p>We introduced a fully self-supervised pipeline for redundancy reduction in large unlabeled datasets. By combining feature embeddings with diversity-driven subsampling, the method creates compact subsets that better represent the variety of the original data while reducing labeling and storage costs.</p>
+<p>Our experiments show that while Furthest Neighbor Sampling can spread points effectively, it is sensitive to outliers and often requires dimensionality reduction preprocessing. In contrast, our stochastic Minimum Distance Sampling avoids this issue, scales efficiently to millions of points, and produces more uniformly representative subsets. Among the embedding choices, SwAV consistently yielded the best representation for distance-based selection.</p>
+<p>The best-performing configuration — SwAV embeddings with MDS and histogram-based <img src="https://latex.codecogs.com/png.latex?%5Cdelta"> estimation — produced subsets that were compact, diverse, and computationally efficient. More broadly, this demonstrates that it is possible to combat redundancy in large unlabeled datasets without labels, heuristics, or metadata, making the approach applicable across domains where annotation is scarce or costly.</p>
+</section>
+<section id="acknowledgement" class="level1">
+<h1>Acknowledgement</h1>
+<p>This work was done during my MSc thesis under Csaba Zainkó’s supervision. This was later turned into an article (<a href="https://ieeexplore.ieee.org/document/8906280">https://ieeexplore.ieee.org/document/8906280</a>) coauthored by Csaba Zainkó.</p>
+</section>
+<section id="citation" class="level1">
+<h1>Citation</h1>
+<div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode ruby code-with-copy"><code class="sourceCode ruby"><span id="cb4-1"><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">@article</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">{</span>englert2019wavetract,</span>
+<span id="cb4-2">  title   <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Selecting Diverse Images from Vehicle Camera using Unsupervised Learning"</span>,</span>
+<span id="cb4-3">  author  <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"{Englert, Brunó B.} and {Zainkó, Csaba}"</span>,</span>
+<span id="cb4-4">  booktitle <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"1st Workshop on Intelligent Infocommunication Networks, Systems and Services"</span>,</span>
+<span id="cb4-5">  year    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"2023"</span>,</span>
+<span id="cb4-6"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">}</span></span></code></pre></div>
+</section>
+<section id="code" class="level1">
+<h1>Code</h1>
+
+
+</section>
+
+ ]]></description>
+  <category>deep</category>
+  <guid>https://www.englert.ai/posts/005_visual_similarity_sampling/englert_ai_5_visual_similarity_sampling.html</guid>
+  <pubDate>Sat, 23 Aug 2025 22:00:00 GMT</pubDate>
+</item>
 <item>
   <title>Why Do Vision Transformers Need So Much Data and How to (Partially) Fix It?</title>
   <dc:creator>Bruno Englert</dc:creator>
