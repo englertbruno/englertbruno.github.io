@@ -1258,10 +1258,7 @@ Figure&nbsp;4: Dashcam video with selected frames. The red flashing corner means
 <p>We introduced a fully self-supervised pipeline for redundancy reduction in large unlabeled datasets. By combining feature embeddings with diversity-driven subsampling, the method creates compact subsets that better represent the variety of the original data while reducing labeling and storage costs.</p>
 <p>Our experiments show that while Furthest Neighbor Sampling can spread points effectively, it is sensitive to outliers and often requires dimensionality reduction preprocessing. In contrast, our stochastic Minimum Distance Sampling avoids this issue, scales efficiently to millions of points, and produces more uniformly representative subsets. Among the embedding choices, SwAV consistently yielded the best representation for distance-based selection.</p>
 <p>The best-performing configuration — SwAV embeddings with MDS and histogram-based <img src="https://latex.codecogs.com/png.latex?%5Cdelta"> estimation — produced subsets that were compact, diverse, and computationally efficient. More broadly, this demonstrates that it is possible to combat redundancy in large unlabeled datasets without labels, heuristics, or metadata, making the approach applicable across domains where annotation is scarce or costly.</p>
-</section>
-<section id="acknowledgement" class="level1">
-<h1>Acknowledgement</h1>
-<p>This work was done during my MSc thesis under Csaba Zainkó’s supervision. This was later turned into an article (<a href="https://ieeexplore.ieee.org/document/8906280">https://ieeexplore.ieee.org/document/8906280</a>) coauthored by Csaba Zainkó.</p>
+<p>This work was done during my MSc thesis under Csaba Zainkó’s supervision.</p>
 </section>
 <section id="citation" class="level1">
 <h1>Citation</h1>
@@ -1299,9 +1296,6 @@ font-style: inherit;">"2023"</span>,</span>
 background-color: null;
 font-weight: bold;
 font-style: inherit;">}</span></span></code></pre></div>
-</section>
-<section id="code" class="level1">
-<h1>Code</h1>
 
 
 </section>

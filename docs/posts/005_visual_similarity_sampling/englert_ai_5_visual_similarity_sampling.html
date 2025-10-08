@@ -252,9 +252,7 @@ window.Quarto = {
   <li><a href="#qualitative-results-for-video" id="toc-qualitative-results-for-video" class="nav-link" data-scroll-target="#qualitative-results-for-video">Qualitative Results for Video</a></li>
   </ul></li>
   <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
-  <li><a href="#acknowledgement" id="toc-acknowledgement" class="nav-link" data-scroll-target="#acknowledgement">Acknowledgement</a></li>
   <li><a href="#citation" id="toc-citation" class="nav-link" data-scroll-target="#citation">Citation</a></li>
-  <li><a href="#code" id="toc-code" class="nav-link" data-scroll-target="#code">Code</a></li>
   </ul>
 </nav>
     </div>
@@ -833,10 +831,7 @@ Figure&nbsp;4: Dashcam video with selected frames. The red flashing corner means
 <p>We introduced a fully self-supervised pipeline for redundancy reduction in large unlabeled datasets. By combining feature embeddings with diversity-driven subsampling, the method creates compact subsets that better represent the variety of the original data while reducing labeling and storage costs.</p>
 <p>Our experiments show that while Furthest Neighbor Sampling can spread points effectively, it is sensitive to outliers and often requires dimensionality reduction preprocessing. In contrast, our stochastic Minimum Distance Sampling avoids this issue, scales efficiently to millions of points, and produces more uniformly representative subsets. Among the embedding choices, SwAV consistently yielded the best representation for distance-based selection.</p>
 <p>The best-performing configuration — SwAV embeddings with MDS and histogram-based <span class="math inline">\(\delta\)</span> estimation — produced subsets that were compact, diverse, and computationally efficient. More broadly, this demonstrates that it is possible to combat redundancy in large unlabeled datasets without labels, heuristics, or metadata, making the approach applicable across domains where annotation is scarce or costly.</p>
-</section>
-<section id="acknowledgement" class="level1">
-<h1>Acknowledgement</h1>
-<p>This work was done during my MSc thesis under Csaba Zainkó’s supervision. This was later turned into an article (<a href="https://ieeexplore.ieee.org/document/8906280">https://ieeexplore.ieee.org/document/8906280</a>) coauthored by Csaba Zainkó.</p>
+<p>This work was done during my MSc thesis under Csaba Zainkó’s supervision.</p>
 </section>
 <section id="citation" class="level1">
 <h1>Citation</h1>
@@ -846,9 +841,6 @@ Figure&nbsp;4: Dashcam video with selected frames. The red flashing corner means
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  booktitle <span class="kw">=</span> <span class="st">"1st Workshop on Intelligent Infocommunication Networks, Systems and Services"</span>,</span>
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  year    <span class="kw">=</span> <span class="st">"2023"</span>,</span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="kw">}</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</section>
-<section id="code" class="level1">
-<h1>Code</h1>
 
 
 </section>
