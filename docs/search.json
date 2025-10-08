@@ -196,6 +196,13 @@
     "text": "CIFAR-10 (5k from 50k)\nCIFAR-10 is an image classification dataset with 50,000 training and 10,000 test images across 10 classes. Subsets of 5,000 training images were selected in each iteration.\nTwo key findings:\n\nFNS required UMAP to be competitive. Without UMAP, FNS underperformed even random selection, as outliers dominated the subsets. With UMAP, however, FNS improved considerably, and in combination with SwAV achieved the highest accuracy overall (82.72%).\nMDS was stable across conditions. MDS performed consistently close to or above baseline regardless of UMAP, and paired especially well with SwAV. This stability makes it preferable for large-scale settings, where the cost of dimensionality reduction (such as UMAP) is prohibitive.\n\n\n\n\nTable 1: Classification accuracy on CIFAR-10 when selecting 5k training samples out of 50k. Results compare embeddings (Supervised, AutoEncoder, SwAV), sampling strategies (Furthest Neighbor Sampling, Minimum Distance Sampling, or Uniform baseline), and the effect of UMAP dimensionality reduction (✅). Differences are reported relative to Uniform Random Sampling.\n\n\n\n\n\n\n\n\n\n\n\n\nEmbedding\nSampling\nUMAP\nMean Acc.\nDifference to Uniform Sampling\n\n\n\n\n–\nUniform\n\n82.47%\n–\n\n\nSupervised\nFNS\n\n79.59%\n−2.88%\n\n\nAutoEncoder\nFNS\n\n77.99%\n−4.48%\n\n\nSwAV\nFNS\n\n81.55%\n−0.91%\n\n\nSupervised\nFNS\n✅\n82.50%\n+0.03%\n\n\nAutoEncoder\nFNS\n✅\n82.25%\n−0.22%\n\n\nSwAV\nFNS\n✅\n82.72%\n+0.25%\n\n\nSupervised\nMDS\n\n82.48%\n+0.01%\n\n\nAutoEncoder\nMDS\n\n82.34%\n−0.09%\n\n\nSwAV\nMDS\n\n82.65%\n+0.17%\n\n\nSupervised\nMDS\n✅\n82.52%\n+0.05%\n\n\nAutoEncoder\nMDS\n✅\n82.47%%\n0.00%\n\n\nSwAV\nMDS\n✅\n82.64%\n+0.17%\n\n\n\n\n\n\nWhile the margins are small, they are consistent across 150 runs, making them statistically significant."
   },
   {
+    "objectID": "posts/005_visual_similarity_sampling/englert_ai_5_visual_similarity_sampling.html#effect-of-downsampling-size",
+    "href": "posts/005_visual_similarity_sampling/englert_ai_5_visual_similarity_sampling.html#effect-of-downsampling-size",
+    "title": "Self-Supervised Data Pruning for Large-Scale Datasets",
+    "section": "Effect of Downsampling Size",
+    "text": "Effect of Downsampling Size\nWe next varied the subset size from 5k to 45k. At small subset sizes, diversity-aware sampling provided clear gains over random selection — for example, SwAV + MDS improved accuracy by +0.17% at 5k samples.\n\n\n\nTable 2: Effect of subset size on classification accuracy for CIFAR-10 when using SwAV embeddings with Minimum Distance Sampling (without dimensionality reduction). As the subset size increases from 5k to 45k, the relative gain over random sampling diminishes.\n\n\n\n\n\n\n\n\n\n\n\nDownsample Size\nRandom Uniform Sampling\nSwAV + No Dim Reduction + Minimum Distance Sampling\nDifference to Uniform Sampling\n\n\n\n\n5000\n82.47%\n82.65%\n+0.17%\n\n\n10000\n87.27%\n87.40%\n+0.13%\n\n\n15000\n89.58%\n89.71%\n+0.13%\n\n\n20000\n90.70%\n90.81%\n+0.11%\n\n\n25000\n91.35%\n91.47%\n+0.12%\n\n\n30000\n91.78%\n91.89%\n+0.11%\n\n\n35000\n92.07%\n92.21%\n+0.13%\n\n\n40000\n92.43%\n92.46%\n+0.03%\n\n\n45000\n92.62%\n92.63%\n+0.01%"
+  },
+  {
     "objectID": "posts/005_visual_similarity_sampling/englert_ai_5_visual_similarity_sampling.html#complexity-and-scaling",
     "href": "posts/005_visual_similarity_sampling/englert_ai_5_visual_similarity_sampling.html#complexity-and-scaling",
     "title": "Self-Supervised Data Pruning for Large-Scale Datasets",
@@ -236,19 +243,5 @@
     "title": "Archive",
     "section": "",
     "text": "Order By\n       Default\n         \n          Date - Oldest\n        \n         \n          Date - Newest\n        \n         \n          Title\n        \n     \n  \n    \n      \n      \n    \n\n\n\n\n\nDate\n\n\nTitle\n\n\n\n\n\n\nAug 24, 2025\n\n\nSelf-Supervised Data Pruning for Large-Scale Datasets\n\n\n\n\nJul 9, 2025\n\n\nWhy Do Vision Transformers Need So Much Data and How to (Partially) Fix It?\n\n\n\n\nApr 20, 2025\n\n\nControlling a Vocal Tract With a Neural Network\n\n\n\n\nJul 29, 2023\n\n\nBalancing the Inverted Pendulum: An Introduction to Fuzzy Logic Control\n\n\n\n\nJul 26, 2023\n\n\n2D Physics of The Inverted Pendulum on a Cart\n\n\n\n\n\nNo matching items"
-  },
-  {
-    "objectID": "posts/005_visual_similarity_sampling/englert_ai_5_visual_similarity_sampling.html#effect-of-downsampling-size",
-    "href": "posts/005_visual_similarity_sampling/englert_ai_5_visual_similarity_sampling.html#effect-of-downsampling-size",
-    "title": "Self-Supervised Data Pruning for Large-Scale Datasets",
-    "section": "Effect of Downsampling Size",
-    "text": "Effect of Downsampling Size\nWe next varied the subset size from 5k to 45k. At small subset sizes, diversity-aware sampling provided clear gains over random selection — for example, SwAV + MDS improved accuracy by +0.17% at 5k samples.\n\n\n\nTable 2: Effect of subset size on classification accuracy for CIFAR-10 when using SwAV embeddings with Minimum Distance Sampling (without dimensionality reduction). As the subset size increases from 5k to 45k, the relative gain over random sampling diminishes.\n\n\n\n\n\n\n\n\n\n\n\nDownsample Size\nRandom Uniform Sampling\nSwAV + No Dim Reduction + Minimum Distance Sampling\nDifference to Uniform Sampling\n\n\n\n\n5000\n82.47%\n82.65%\n+0.17%\n\n\n10000\n87.27%\n87.40%\n+0.13%\n\n\n15000\n89.58%\n89.71%\n+0.13%\n\n\n20000\n90.70%\n90.81%\n+0.11%\n\n\n25000\n91.35%\n91.47%\n+0.12%\n\n\n30000\n91.78%\n91.89%\n+0.11%\n\n\n35000\n92.07%\n92.21%\n+0.13%\n\n\n40000\n92.43%\n92.46%\n+0.03%\n\n\n45000\n92.62%\n92.63%\n+0.01%"
-  },
-  {
-    "objectID": "posts/005_visual_similarity_sampling/englert_ai_5_visual_similarity_sampling.html#tiny-imagenet-10k-from-100k",
-    "href": "posts/005_visual_similarity_sampling/englert_ai_5_visual_similarity_sampling.html#tiny-imagenet-10k-from-100k",
-    "title": "Removing Redundancy from Video Data Without Labels",
-    "section": "Tiny ImageNet (10k from 100k)",
-    "text": "Tiny ImageNet (10k from 100k)\nTiny ImageNet is a harder benchmark with 200 categories and more complex structure. When downsampling to 10k examples, SwAV + MDS again outperformed both random and supervised baselines (Table 5.7).\n\n\n\nMethod\nMean Acc.\nStd.\n\\(\\delta\\) vs. Baseline\n\n\n\n\nBaseline Random\n21.34%\n0.65%\n–\n\n\nSupervised + MDS\n21.96%\n0.43%\n+0.62%\n\n\nSwAV + MDS\n22.13%\n0.70%\n+0.79%"
   }
 ]
