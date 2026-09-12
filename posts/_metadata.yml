@@ -1,5 +1,10 @@
 # options specified here will apply to all posts in this folder
 
+# Preserve the notebooks' rendering behavior: display code without running it.
+# Enable execution explicitly for future articles that generate their output.
+execute:
+  enabled: false
+
 # freeze computational output
 # (see https://quarto.org/docs/projects/code-execution.html#freeze)
 freeze: true
