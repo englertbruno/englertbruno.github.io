@@ -1,44 +1,101 @@
 /* css styles */
 
-/* Pass the selected site theme into the pendulum SVGs and demo iframe. */
-body.quarto-light {
-  --pendulum-color-scheme: light;
-  --pendulum-figure-background: #f5f5f5;
+/* Keep the homepage compact without changing article typography. */
+.home-page {
+  --home-muted-color: #666;
 }
-body.quarto-dark {
-  --pendulum-color-scheme: dark;
-  --pendulum-figure-background: #1d1e20;
+.home-page.quarto-dark {
+  --home-muted-color: #aaa;
 }
-img[src$="broom_cart.svg"],
-img[src$="cart_pendulum.svg"],
-img[src$="pendulum_details.svg"],
-img[src$="cart_forces.svg"],
-img[src$="rod_torque.svg"],
-img[src$="rod_coordinates.svg"],
-img[src$="rod_forces.svg"],
-img[src$="euler_method.svg"],
-img[src$="free_motion.svg"],
-iframe[src$="pendulum_demo.html"] {
-  color-scheme: var(--pendulum-color-scheme, light dark);
+.home-page #quarto-document-content {
+  width: 100%;
+  max-width: 44rem;
+  margin-inline: auto;
 }
-.gslide-image img[src$="broom_cart.svg"],
-.gslide-image img[src$="cart_pendulum.svg"],
-.gslide-image img[src$="pendulum_details.svg"],
-.gslide-image img[src$="cart_forces.svg"],
-.gslide-image img[src$="rod_torque.svg"],
-.gslide-image img[src$="rod_coordinates.svg"],
-.gslide-image img[src$="rod_forces.svg"],
-.gslide-image img[src$="euler_method.svg"],
-.gslide-image img[src$="free_motion.svg"] {
-  background-color: var(--pendulum-figure-background, transparent);
+.home-page #title-block-header .title {
+  font-size: 1.8rem;
+}
+.home-page #title-block-header .subtitle {
+  margin-top: 0.4rem;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--home-muted-color);
+}
+.home-page .quarto-listing-container-default {
+  margin-right: 0;
+}
+.home-page div.quarto-post {
+  padding: 0.8rem 1rem;
+  margin-bottom: 0.5rem;
+  border-radius: 0.7rem;
+}
+.home-page .quarto-post .listing-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.home-page .quarto-post .listing-description {
+  font-size: 0.92rem;
+  margin-bottom: 0;
+  color: var(--home-muted-color);
+}
+.home-page .quarto-post .listing-description a {
+  color: inherit;
+}
+.home-page .quarto-post .thumbnail p {
+  margin: 0;
+}
+.home-page div.quarto-post .thumbnail img {
+  display: block;
+  width: 100%;
+  max-width: 7rem;
+  margin: 0;
 }
 
-/* These diagrams use fixed black labels on a transparent canvas. */
-#fig-main img,
-#fig-main-diagram-original img,
-.gslide-image img[src$="neuraltract_diagram3_simplified.svg"],
-.gslide-image img[src$="neuraltract_diagram3_original.svg"] {
-  background-color: #fff;
+/* Use compact image and date columns only while cards flow horizontally. */
+@media (min-width: 768px) {
+  .home-page div.quarto-post {
+    gap: 1.25rem;
+  }
+  .home-page .quarto-post .thumbnail,
+  .home-page .quarto-post .metadata {
+    flex: 0 0 7rem;
+  }
+  .home-page .quarto-post .body {
+    flex: 1;
+    min-width: 0;
+  }
+  .home-page .quarto-post .thumbnail {
+    align-self: center;
+  }
+}
+
+/* Align the navigation with the homepage column, keeping equal side gutters. */
+#quarto-header .navbar-container {
+  max-width: min(44rem, calc(100vw - 3rem));
+  padding-inline: 0;
+}
+
+/* Show the destination theme with the existing Bootstrap moon/sun icons. */
+#quarto-header .quarto-color-scheme-toggle .bi::before {
+  background-image: none;
+  content: "\f497";
+}
+.quarto-dark #quarto-header .quarto-color-scheme-toggle .bi::before {
+  content: "\f5a2";
+}
+
+/* Embedded SVGs and iframes inherit the selected site theme. */
+body.quarto-light {
+  color-scheme: light;
+}
+body.quarto-dark {
+  color-scheme: dark;
+}
+/* Keep the enlarged image's surface consistent with the page. */
+.gslide-image {
+  background-color: var(--bs-body-bg);
 }
 
 /* Keep wide technical content scrollable without widening the article. */
@@ -70,7 +127,7 @@ main table {
 }
 
 /* Let the expanded mobile menu occupy space above the article. */
-@media (max-width: 991.98px) {
+@media (max-width: 575.98px) {
   .navbar {
     height: auto;
     min-height: 40px;

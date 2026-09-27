@@ -5,18 +5,17 @@
       xmlns:dc="http://purl.org/dc/elements/1.1/" 
       version="2.0">
 <channel>
-<title>englert.ai</title>
+<title>🤖</title>
 <link>https://www.englert.ai/</link>
 <atom:link href="https://www.englert.ai/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.10.18</generator>
-<lastBuildDate>Sat, 23 Aug 2025 22:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sun, 24 Aug 2025 00:00:00 GMT</lastBuildDate>
 <item>
   <title>Self-Supervised Data Pruning for Large-Scale Datasets</title>
   <dc:creator>Bruno Englert</dc:creator>
   <link>https://www.englert.ai/posts/005_visual_similarity_sampling/englert_ai_5_visual_similarity_sampling.html</link>
   <description><![CDATA[ 
-
 
 
 
@@ -1298,14 +1297,13 @@ font-style: inherit;">}</span></span></code></pre></div></div>
  ]]></description>
   <category>deep</category>
   <guid>https://www.englert.ai/posts/005_visual_similarity_sampling/englert_ai_5_visual_similarity_sampling.html</guid>
-  <pubDate>Sat, 23 Aug 2025 22:00:00 GMT</pubDate>
+  <pubDate>Sun, 24 Aug 2025 00:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Why Do Vision Transformers Need So Much Data and How to (Partially) Fix It?</title>
   <dc:creator>Bruno Englert</dc:creator>
   <link>https://www.englert.ai/posts/004_vit_attention_mask/englert_ai_4_vit_attention_mask.html</link>
   <description><![CDATA[ 
-
 
 
 
@@ -1562,14 +1560,13 @@ font-style: inherit;">}</span></span></code></pre></div></div>
  ]]></description>
   <category>deep</category>
   <guid>https://www.englert.ai/posts/004_vit_attention_mask/englert_ai_4_vit_attention_mask.html</guid>
-  <pubDate>Tue, 08 Jul 2025 22:00:00 GMT</pubDate>
+  <pubDate>Wed, 09 Jul 2025 00:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Controlling a Vocal Tract With a Neural Network</title>
   <dc:creator>Bruno Englert</dc:creator>
   <link>https://www.englert.ai/posts/003_neural_tract/englert_ai_3_neural_tract.html</link>
   <description><![CDATA[ 
-
 
 
 
@@ -1860,14 +1857,13 @@ font-style: inherit;">}</span></span></code></pre></div></div>
  ]]></description>
   <category>deep</category>
   <guid>https://www.englert.ai/posts/003_neural_tract/englert_ai_3_neural_tract.html</guid>
-  <pubDate>Sat, 19 Apr 2025 22:00:00 GMT</pubDate>
+  <pubDate>Sun, 20 Apr 2025 00:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Balancing the Inverted Pendulum: An Introduction to Fuzzy Logic Control</title>
   <dc:creator>Bruno Englert</dc:creator>
   <link>https://www.englert.ai/posts/002_fuzzy_control/englert_ai_2_fuzzy_control.html</link>
   <description><![CDATA[ 
-
 
 
 
@@ -2129,7 +2125,7 @@ font-style: inherit;">}</span></span></code></pre></div></div>
 <figcaption>Figure 6: Screenshot of the running simulation</figcaption>
 </figure>
 </div>
-<div id="328bdbc7" class="cell">
+<div id="726bdf3a" class="cell">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
@@ -2919,7 +2915,7 @@ font-style: inherit;">"https://englert.ai/posts/002_fuzzy_control/englert_ai_2_f
 background-color: null;
 font-style: inherit;">}</span></span></code></pre></div></div>
 <p>The code to reproduce the visualization:</p>
-<div id="b5403907" class="cell">
+<div id="b76cc546" class="cell">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><span class="im" style="color: #00769E;
@@ -3427,7 +3423,7 @@ font-style: inherit;">"force_on_cart"</span>],</span>
 <span id="cb4-80">                                            pre_C)</span></code></pre></div></div>
 </details>
 </div>
-<div id="c779d54b" class="cell">
+<div id="5b6f3c82" class="cell">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><span class="kw" style="color: #003B4F;
@@ -4481,7 +4477,7 @@ background-color: null;
 font-style: inherit;">=</span>width)</span></code></pre></div></div>
 </details>
 </div>
-<div id="8a40b6ca" class="cell">
+<div id="47f60b84" class="cell">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><span class="kw" style="color: #003B4F;
@@ -4728,14 +4724,13 @@ font-style: inherit;">=</span> Application(SCREEN_WIDTH, SCREEN_HEIGHT)</span>
  ]]></description>
   <category>control</category>
   <guid>https://www.englert.ai/posts/002_fuzzy_control/englert_ai_2_fuzzy_control.html</guid>
-  <pubDate>Fri, 28 Jul 2023 22:00:00 GMT</pubDate>
+  <pubDate>Sat, 29 Jul 2023 00:00:00 GMT</pubDate>
 </item>
 <item>
   <title>2D Physics of the Inverted Pendulum on a Cart</title>
   <dc:creator>Bruno Englert</dc:creator>
   <link>https://www.englert.ai/posts/001_inverted_pendulum/englert_ai_1_cart_physics.html</link>
   <description><![CDATA[ 
-
 
 
 
@@ -5224,7 +5219,7 @@ font-style: inherit;">-m</span> pip install numpy arcade</span></code></pre></di
   <category>Simulation</category>
   <category>Control</category>
   <guid>https://www.englert.ai/posts/001_inverted_pendulum/englert_ai_1_cart_physics.html</guid>
-  <pubDate>Tue, 25 Jul 2023 22:00:00 GMT</pubDate>
+  <pubDate>Wed, 26 Jul 2023 00:00:00 GMT</pubDate>
   <media:content url="https://www.englert.ai/posts/001_inverted_pendulum/cart_pendulum.svg" medium="image" type="image/svg+xml"/>
 </item>
 </channel>
