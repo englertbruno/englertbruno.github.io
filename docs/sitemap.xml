@@ -1,35 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://www.englert.ai/about.html</loc>
-    <lastmod>2023-07-25T11:18:42.850Z</lastmod>
+    <loc>https://www.englert.ai/posts/005_visual_similarity_sampling/englert_ai_5_visual_similarity_sampling.html</loc>
+    <lastmod>2026-09-27T18:06:13.818Z</lastmod>
   </url>
   <url>
     <loc>https://www.englert.ai/posts/003_neural_tract/englert_ai_3_neural_tract.html</loc>
-    <lastmod>2025-07-13T09:45:52.843Z</lastmod>
-  </url>
-  <url>
-    <loc>https://www.englert.ai/posts/002_fuzzy_control/englert_ai_2_fuzzy_control.html</loc>
-    <lastmod>2025-04-02T14:52:48.024Z</lastmod>
-  </url>
-  <url>
-    <loc>https://www.englert.ai/posts/004_vit_attention_mask/englert_ai_4_vit_attention_mask.html</loc>
-    <lastmod>2025-07-13T11:00:43.435Z</lastmod>
-  </url>
-  <url>
-    <loc>https://www.englert.ai/index.html</loc>
-    <lastmod>2023-10-28T09:02:44.965Z</lastmod>
-  </url>
-  <url>
-    <loc>https://www.englert.ai/posts/005_visual_similarity_sampling/englert_ai_5_visual_similarity_sampling.html</loc>
-    <lastmod>2025-10-08T12:41:40.286Z</lastmod>
+    <lastmod>2026-09-27T18:06:13.770Z</lastmod>
   </url>
   <url>
     <loc>https://www.englert.ai/posts/001_inverted_pendulum/englert_ai_1_cart_physics.html</loc>
-    <lastmod>2025-04-02T14:52:48.068Z</lastmod>
+    <lastmod>2026-09-27T17:28:18.167Z</lastmod>
   </url>
   <url>
     <loc>https://www.englert.ai/archive.html</loc>
-    <lastmod>2023-10-31T10:23:16.002Z</lastmod>
+    <lastmod>2026-09-20T20:04:11.901Z</lastmod>
+  </url>
+  <url>
+    <loc>https://www.englert.ai/index.html</loc>
+    <lastmod>2026-09-20T20:05:27.953Z</lastmod>
+  </url>
+  <url>
+    <loc>https://www.englert.ai/about.html</loc>
+    <lastmod>2026-09-20T20:04:11.762Z</lastmod>
+  </url>
+  <url>
+    <loc>https://www.englert.ai/posts/002_fuzzy_control/englert_ai_2_fuzzy_control.html</loc>
+    <lastmod>2026-09-27T18:06:13.766Z</lastmod>
+  </url>
+  <url>
+    <loc>https://www.englert.ai/posts/004_vit_attention_mask/englert_ai_4_vit_attention_mask.html</loc>
+    <lastmod>2026-09-27T18:06:13.816Z</lastmod>
   </url>
 </urlset>

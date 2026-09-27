@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="575" viewBox="0 0 900 575" role="img" aria-labelledby="title desc">
+<title id="title">Acceleration and lever arms on the same rod</title>
+<desc id="desc">Both panels repeat the rod at the same angle as the complete cart and pendulum. Faint carts locate the pivot. Left, all three acceleration contributions start at the midpoint. Cart acceleration points right, the tangential contribution down and right, and the inward contribution toward the pivot. The angle from horizontal to tangent is theta. Right, upward force P and rightward force N act at the pivot. Their lever arms about the midpoint are the horizontal distance l sine theta and vertical distance l cosine theta. Curved arrows about that midpoint mark clockwise positive torque from P and counterclockwise negative torque from N.</desc>
+<style>
+    :root {
+      color-scheme: light dark;
+      --ink: #25384a;
+      --line: #52677b;
+      --muted: #66788a;
+      --divider: #94a3b8;
+      --blue: #1763a6;
+      --orange: #ad4715;
+      --purple: #79509b;
+      --wash: rgba(23, 99, 166, 0.07);
+      --cart: rgba(23, 99, 166, 0.12);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink: #e2e8f0;
+        --line: #b1c2d1;
+        --muted: #859bb0;
+        --divider: #52677b;
+        --blue: #75baff;
+        --orange: #f4a66a;
+        --purple: #c9a3e6;
+        --wash: rgba(117, 186, 255, 0.07);
+        --cart: rgba(117, 186, 255, 0.12);
+      }
+    }
+  </style>
+<defs><marker id="ink" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse"><path d="M0 0L7 3.5L0 7Z" fill="var(--ink)"/></marker><marker id="line" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse"><path d="M0 0L7 3.5L0 7Z" fill="var(--line)"/></marker><marker id="blue" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse"><path d="M0 0L7 3.5L0 7Z" fill="var(--blue)"/></marker><marker id="orange" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse"><path d="M0 0L7 3.5L0 7Z" fill="var(--orange)"/></marker><marker id="purple" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse"><path d="M0 0L7 3.5L0 7Z" fill="var(--purple)"/></marker></defs>
+<g font-family="sans-serif" font-size="24" fill="var(--ink)" stroke-linecap="round" stroke-linejoin="round">
+<text x="28" y="34" font-size="27">Acceleration</text>
+<text x="28" y="65" font-size="22">of the center of mass</text>
+<text x="478" y="34" font-size="27">Lever arms</text>
+<text x="478" y="65" font-size="22">about the center of mass</text>
+<path d="M450 22V554" stroke="var(--divider)"/>
+<g opacity="0.4">
+<path d="M170 402V429" stroke="var(--line)" stroke-width="3"/>
+<rect x="104" y="429" width="132" height="40" rx="5" fill="var(--cart)" stroke="var(--line)" stroke-width="2"/>
+<circle cx="127" cy="481" r="10" fill="var(--line)"/><circle cx="213" cy="481" r="10" fill="var(--line)"/>
+<path d="M80 493H260" stroke="var(--muted)" stroke-width="1.5"/>
+</g><g opacity="0.4">
+<path d="M630 402V429" stroke="var(--line)" stroke-width="3"/>
+<rect x="564" y="429" width="132" height="40" rx="5" fill="var(--cart)" stroke="var(--line)" stroke-width="2"/>
+<circle cx="587" cy="481" r="10" fill="var(--line)"/><circle cx="673" cy="481" r="10" fill="var(--line)"/>
+<path d="M540 493H720" stroke="var(--muted)" stroke-width="1.5"/>
+</g>
+<!-- Both rods have the same length and inclination as the main drawing. -->
+<path id="acceleration-rod" d="M170 402L350 66" stroke="var(--line)" stroke-width="11"/>
+<path id="torque-rod" d="M630 402L810 66" stroke="var(--line)" stroke-width="11"/>
+<path d="M136.90 214.31A190.58856209122308 190.58856209122308 0 0 1 349.09 336.81" fill="none" stroke="var(--divider)" stroke-width="2" stroke-dasharray="5 5"/><text x="28" y="157" font-size="20">path around the pivot</text>
+<path d="M153 165L153 210" stroke="var(--divider)" stroke-width="1.5"/>
+<!-- Acceleration contributions all start at the center of mass. -->
+<path id="carried" d="M260 234H416" stroke="var(--purple)" stroke-width="3" marker-end="url(#purple)"/>
+<text x="391" y="212" fill="var(--purple)">ẍ</text>
+<path id="tangent" d="M260 234L391.04 304.2" stroke="var(--purple)" stroke-width="3" marker-end="url(#purple)"/>
+<text x="344" y="336" fill="var(--purple)">lθ̈</text>
+<text x="326" y="366" font-size="20" fill="var(--purple)">tangent</text>
+<path id="inward" d="M260 234L208.25 330.6" stroke="var(--purple)" stroke-width="3" marker-end="url(#purple)"/>
+<path d="M222 305H141" stroke="var(--purple)" stroke-width="1.5"/>
+<text x="60" y="300" fill="var(--purple)">lθ̇²</text>
+<text x="60" y="329" font-size="20" fill="var(--purple)">inward</text>
+<path d="M313.00 234.00A53 53 0 0 1 306.72 259.03" fill="none" stroke="var(--ink)" stroke-width="2"/>
+<text x="321" y="263" font-size="22">θ</text>
+<circle id="acceleration-center" cx="260" cy="234" r="7" fill="var(--blue)"/>
+<circle cx="170" cy="402" r="5" fill="var(--ink)"/>
+<text x="105" y="410" font-size="20">pivot</text>
+<text x="28" y="539" font-size="20">Arrows show positive ẍ and θ̈.</text>
+<!-- The dashed lines extend the forces acting at the same pivot. -->
+<path d="M630 420V180 M588 402H861" fill="none" stroke="var(--blue)" stroke-width="1.8" stroke-dasharray="6 5"/>
+<path id="detail-P" d="M630 402V287" stroke="var(--blue)" stroke-width="3" marker-end="url(#blue)"/>
+<text x="597" y="310" fill="var(--blue)">P</text>
+<path id="detail-N" d="M630 402H800" stroke="var(--blue)" stroke-width="3" marker-end="url(#blue)"/>
+<text x="822" y="392" fill="var(--blue)">N</text>
+<!-- These two distances are perpendicular to the lines of action. -->
+<path id="P-arm" d="M630 234H720" stroke="var(--ink)" stroke-width="2"/>
+<path id="N-arm" d="M720 234V402" stroke="var(--ink)" stroke-width="2"/>
+<path d="M630 250H646V234 M720 386H736V402" fill="none" stroke="var(--ink)" stroke-width="1.5"/>
+<text x="638" y="216" font-size="22">l sin θ</text>
+<text x="739" y="329" font-size="22">l cos θ</text>
+<path d="M767.38 186.62A67 67 0 0 1 780.72 262.32" fill="none" stroke="var(--blue)" stroke-width="2" marker-end="url(#blue)"/><path d="M815.16 278.37A105 105 0 0 0 794.25 159.75" fill="none" stroke="var(--blue)" stroke-width="2" marker-end="url(#blue)"/>
+<text x="758" y="244" fill="var(--blue)">+</text>
+<text x="838" y="244" fill="var(--blue)">−</text>
+<circle id="torque-center" cx="720" cy="234" r="7" fill="var(--blue)"/>
+<circle cx="630" cy="402" r="5" fill="var(--ink)"/>
+<text x="565" y="427" font-size="20">pivot</text>
+<text x="478" y="520" font-size="20">P turns the rod clockwise (+).</text>
+<text x="478" y="550" font-size="20">N turns it counterclockwise (−).</text>
+
+</g>
+</svg>

@@ -1,4 +1,78 @@
 /* css styles */
 
+/* Pass the selected site theme into the pendulum SVGs and demo iframe. */
+body.quarto-light {
+  --pendulum-color-scheme: light;
+  --pendulum-figure-background: #f5f5f5;
+}
+body.quarto-dark {
+  --pendulum-color-scheme: dark;
+  --pendulum-figure-background: #1d1e20;
+}
+img[src$="broom_cart.svg"],
+img[src$="cart_pendulum.svg"],
+img[src$="pendulum_details.svg"],
+img[src$="cart_forces.svg"],
+img[src$="rod_torque.svg"],
+img[src$="rod_coordinates.svg"],
+img[src$="rod_forces.svg"],
+img[src$="euler_method.svg"],
+img[src$="free_motion.svg"],
+iframe[src$="pendulum_demo.html"] {
+  color-scheme: var(--pendulum-color-scheme, light dark);
+}
+.gslide-image img[src$="broom_cart.svg"],
+.gslide-image img[src$="cart_pendulum.svg"],
+.gslide-image img[src$="pendulum_details.svg"],
+.gslide-image img[src$="cart_forces.svg"],
+.gslide-image img[src$="rod_torque.svg"],
+.gslide-image img[src$="rod_coordinates.svg"],
+.gslide-image img[src$="rod_forces.svg"],
+.gslide-image img[src$="euler_method.svg"],
+.gslide-image img[src$="free_motion.svg"] {
+  background-color: var(--pendulum-figure-background, transparent);
+}
 
+/* These diagrams use fixed black labels on a transparent canvas. */
+#fig-main img,
+#fig-main-diagram-original img,
+.gslide-image img[src$="neuraltract_diagram3_simplified.svg"],
+.gslide-image img[src$="neuraltract_diagram3_original.svg"] {
+  background-color: #fff;
+}
 
+/* Keep wide technical content scrollable without widening the article. */
+main .math.display,
+main table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Give the symbol glossary's explanations most of the table width. */
+#tbl-symbols {
+  overflow-x: auto;
+}
+#tbl-symbols table {
+  display: table;
+  table-layout: fixed;
+  width: 100%;
+  min-width: 38rem;
+}
+#tbl-symbols th,
+#tbl-symbols td {
+  padding: 0.3rem 0.45rem;
+  vertical-align: top;
+}
+#tbl-symbols th:nth-child(-n + 2),
+#tbl-symbols td:nth-child(-n + 2) {
+  white-space: nowrap;
+}
+
+/* Let the expanded mobile menu occupy space above the article. */
+@media (max-width: 991.98px) {
+  .navbar {
+    height: auto;
+    min-height: 40px;
+  }
+}

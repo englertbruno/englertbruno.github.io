@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="500" viewBox="0 0 900 500" role="img" aria-labelledby="title desc">
+  <title id="title">Acceleration and force along the tangent</title>
+  <desc id="desc">The center-of-mass acceleration combines the cart acceleration, a tangential contribution l theta double dot, and an inward contribution l theta dot squared. The dashed arc shows its circular path relative to the pivot. On the right, a right triangle projects N onto the tangent, giving N cosine theta.</desc>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --ink: #25384a;
+      --line: #52677b;
+      --muted: #66788a;
+      --divider: #94a3b8;
+      --blue: #1763a6;
+      --orange: #ad4715;
+      --purple: #79509b;
+      --wash: rgba(23, 99, 166, 0.07);
+      --cart: rgba(23, 99, 166, 0.12);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink: #e2e8f0;
+        --line: #b1c2d1;
+        --muted: #859bb0;
+        --divider: #52677b;
+        --blue: #75baff;
+        --orange: #f4a66a;
+        --purple: #c9a3e6;
+        --wash: rgba(117, 186, 255, 0.07);
+        --cart: rgba(117, 186, 255, 0.12);
+      }
+    }
+  </style>
+<defs><marker id="ink" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse"><path d="M0 0L7 3.5L0 7Z" fill="var(--ink)"/></marker><marker id="line" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse"><path d="M0 0L7 3.5L0 7Z" fill="var(--line)"/></marker><marker id="blue" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse"><path d="M0 0L7 3.5L0 7Z" fill="var(--blue)"/></marker><marker id="orange" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse"><path d="M0 0L7 3.5L0 7Z" fill="var(--orange)"/></marker><marker id="purple" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse"><path d="M0 0L7 3.5L0 7Z" fill="var(--purple)"/></marker></defs>
+<g font-family="sans-serif" font-size="24" fill="var(--ink)" stroke-linecap="round" stroke-linejoin="round">
+
+<text x="28" y="38" font-size="28">Acceleration</text>
+<text x="28" y="70" font-size="22">of the center of mass</text>
+<text x="478" y="38" font-size="28">Force along the tangent</text>
+<path d="M450 22V475" stroke="var(--divider)"/>
+<path d="M155 371L293 115" stroke="var(--muted)" stroke-width="10"/>
+<path d="M155 371V179" stroke="var(--muted)" stroke-width="2" stroke-dasharray="6 6"/>
+<!-- Circle radius 145 about (155,371): the dot (224,243) is on the arc. -->
+<path d="M130 228A145.4 145.4 0 0 1 290 317" fill="none" stroke="var(--divider)" stroke-width="2" stroke-dasharray="5 5"/>
+<text x="32" y="167" font-size="21">path relative to pivot</text>
+<path d="M126 174L132 218" fill="none" stroke="var(--divider)" stroke-width="1.5"/>
+<path d="M224 243L342 306.6" stroke="var(--blue)" stroke-width="3" marker-end="url(#blue)"/>
+<text x="293" y="279" fill="var(--blue)">lθ̈</text>
+<text x="315" y="347" font-size="21" fill="var(--blue)">tangent</text>
+<path d="M224 243L179 326.5" stroke="var(--orange)" stroke-width="4" marker-end="url(#orange)"/>
+<path d="M194 289H112" stroke="var(--orange)" stroke-width="1.5"/>
+<text x="33" y="284" fill="var(--orange)">lθ̇²</text>
+<text x="33" y="314" font-size="21" fill="var(--orange)">inward</text>
+<path d="M224 243H399" stroke="var(--purple)" stroke-width="3" marker-end="url(#purple)"/>
+<text x="370" y="222" fill="var(--purple)">ẍ</text>
+<circle cx="224" cy="243" r="7" fill="var(--blue)"/>
+<circle cx="155" cy="371" r="5" fill="var(--ink)"/>
+<text x="88" y="405" font-size="21">pivot</text>
+
+<text x="28" y="454" font-size="21">Arrows show positive ẍ and θ̈.</text>
+<text x="28" y="485" font-size="21">Inward even at constant speed.</text>
+<!-- N = tangent component + component perpendicular to the tangent. -->
+<path d="M500 132L810 132L740.3 261.4Z" fill="var(--wash)"/>
+<path d="M500 132H810" stroke="var(--blue)" stroke-width="3" marker-end="url(#blue)"/>
+<text x="663" y="109" fill="var(--blue)">N</text>
+<path d="M500 132L854 322.6" stroke="var(--ink)" stroke-width="2" stroke-dasharray="5 5" marker-end="url(#ink)"/>
+<text x="744" y="366" font-size="22">tangent (+)</text>
+<path d="M500 132L740.3 261.4" stroke="var(--blue)" stroke-width="3" marker-end="url(#blue)"/>
+<path d="M810 132L740.3 261.4" stroke="var(--line)" stroke-width="2" stroke-dasharray="5 4"/>
+<path d="M724.5 252.9L733 237L748.9 245.5" fill="none" stroke="var(--line)" stroke-width="2"/>
+<path d="M556 132A56 56 0 0 1 549.3 158.6" fill="none" stroke="var(--ink)" stroke-width="2"/>
+<text x="568" y="161">θ</text>
+<text x="575" y="261" fill="var(--blue)">N cos θ</text>
+<text x="478" y="422" font-size="22">Forces along this direction:</text>
+<text x="478" y="460" font-size="24">N cos θ − P sin θ + mg sin θ</text>
+
+</g>
+</svg>

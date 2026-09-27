@@ -2,19 +2,26 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.6.42">
+<meta name="generator" content="quarto-1.10.18">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Bruno Englert">
 <meta name="dcterms.date" content="2023-07-26">
+<meta name="description" content="Equations of motion and a Python simulation of a uniform rod on a cart.">
 
-<title>2D Physics of The Inverted Pendulum on a Cart – englert.ai</title>
+<title>2D Physics of the Inverted Pendulum on a Cart – englert.ai</title>
 <style>
-code{white-space: pre-wrap;}
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
 span.smallcaps{font-variant: small-caps;}
-div.columns{display: flex; gap: min(4vw, 1.5em);}
-div.column{flex: auto; overflow-x: auto;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
 div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
@@ -23,8 +30,9 @@ ul.task-list li input[type="checkbox"] {
   vertical-align: middle;
 }
 /* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -35,7 +43,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
   { counter-reset: source-line 0; }
@@ -65,17 +73,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../../">
-<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="../../site_libs/quarto-html/popper.min.js"></script>
 <script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-b53751a350365c71b6c909e95f209ed1.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-b85bc7c33db8c58e0ec93c3465666fed.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-16b3f5e886ffe2339ad3afa0f5ead7d8.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../site_libs/bootstrap/bootstrap-dark-de61ec89a3fe71f5a5d34808058448d9.min.css" rel="prefetch" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-8d26e23ced299a4180a9620b4669b668.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-cad76070fedcad0f1a668c40119068ec.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-8d26e23ced299a4180a9620b4669b668.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -103,18 +117,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
-<script async="" src="https://www.googletagmanager.com/gtag/js?id=<Insert your ID here>"></script>
-
-<script type="text/javascript">
-
-window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config', '<Insert your ID here>', { 'anonymize_ip': true});
-</script>
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
 
 <script type="text/javascript">
 const typesetMath = (el) => {
@@ -127,7 +132,7 @@ const typesetMath = (el) => {
     var macros = [];
     for (var i = 0; i < mathElements.length; i++) {
       var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN") {
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
         window.katex.render(texText.data, mathElements[i], {
           displayMode: mathElements[i].classList.contains('display'),
           throwOnError: false,
@@ -144,7 +149,7 @@ window.Quarto = {
 </script>
 
 <link rel="stylesheet" href="../../styles.css">
-<meta name="citation_title" content="2D Physics of The Inverted Pendulum on a Cart">
+<meta name="citation_title" content="2D Physics of the Inverted Pendulum on a Cart">
 <meta name="citation_author" content="Bruno Englert">
 <meta name="citation_publication_date" content="2023-07-26">
 <meta name="citation_cover_date" content="2023-07-26">
@@ -154,17 +159,174 @@ window.Quarto = {
 <meta name="citation_language" content="en">
 </head>
 
-<body class="nav-fixed">
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top quarto-banner">
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
-      <div class="navbar-brand-container mx-auto">
-    <a class="navbar-brand" href="../../index.html">
-    <span class="navbar-title">englert.ai</span>
-    </a>
-  </div>
             <div id="quarto-search" class="" title="Search"></div>
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
   <span class="navbar-toggler-icon"></span>
@@ -196,9 +358,15 @@ window.Quarto = {
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">2D Physics of The Inverted Pendulum on a Cart</h1>
-                                <div class="quarto-categories">
-                <div class="quarto-category">sim</div>
+      <h1 class="title">2D Physics of the Inverted Pendulum on a Cart</h1>
+                  <div>
+        <div class="description">
+          Equations of motion and a Python simulation of a uniform rod on a cart.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">Simulation</div>
+                <div class="quarto-category">Control</div>
               </div>
                   </div>
   </div>
@@ -235,18 +403,16 @@ window.Quarto = {
   <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
   <li><a href="#equations-of-motion" id="toc-equations-of-motion" class="nav-link" data-scroll-target="#equations-of-motion">Equations of motion</a>
   <ul class="collapse">
-  <li><a href="#carts-motion" id="toc-carts-motion" class="nav-link" data-scroll-target="#carts-motion">Cart’s Motion</a></li>
-  <li><a href="#pendulums-motion" id="toc-pendulums-motion" class="nav-link" data-scroll-target="#pendulums-motion">Pendulum’s Motion</a>
-  <ul class="collapse">
-  <li><a href="#horizontal" id="toc-horizontal" class="nav-link" data-scroll-target="#horizontal">Horizontal</a></li>
-  <li><a href="#vertical" id="toc-vertical" class="nav-link" data-scroll-target="#vertical">Vertical</a></li>
+  <li><a href="#defining-the-geometry-and-symbols" id="toc-defining-the-geometry-and-symbols" class="nav-link" data-scroll-target="#defining-the-geometry-and-symbols">Defining the geometry and symbols</a></li>
+  <li><a href="#forces-on-the-cart" id="toc-forces-on-the-cart" class="nav-link" data-scroll-target="#forces-on-the-cart">Forces on the cart</a></li>
+  <li><a href="#forces-on-the-rod" id="toc-forces-on-the-rod" class="nav-link" data-scroll-target="#forces-on-the-rod">Forces on the rod</a></li>
+  <li><a href="#rotation-of-the-rod" id="toc-rotation-of-the-rod" class="nav-link" data-scroll-target="#rotation-of-the-rod">Rotation of the rod</a></li>
   </ul></li>
-  </ul></li>
-  <li><a href="#matrix-form-of-the-system" id="toc-matrix-form-of-the-system" class="nav-link" data-scroll-target="#matrix-form-of-the-system">Matrix Form of the System</a></li>
-  <li><a href="#running-a-simulation-using-eulers-method" id="toc-running-a-simulation-using-eulers-method" class="nav-link" data-scroll-target="#running-a-simulation-using-eulers-method">Running a Simulation Using Euler’s Method:</a></li>
-  <li><a href="#putting-it-all-together" id="toc-putting-it-all-together" class="nav-link" data-scroll-target="#putting-it-all-together">Putting it all together</a></li>
-  <li><a href="#fin" id="toc-fin" class="nav-link" data-scroll-target="#fin">Fin</a></li>
+  <li><a href="#matrix-form" id="toc-matrix-form" class="nav-link" data-scroll-target="#matrix-form">Matrix form</a></li>
+  <li><a href="#eulers-method" id="toc-eulers-method" class="nav-link" data-scroll-target="#eulers-method">Euler’s method</a></li>
+  <li><a href="#simulation" id="toc-simulation" class="nav-link" data-scroll-target="#simulation">Simulation</a></li>
   <li><a href="#citation" id="toc-citation" class="nav-link" data-scroll-target="#citation">Citation</a></li>
+  <li><a href="#source-code" id="toc-source-code" class="nav-link" data-scroll-target="#source-code">Source code</a></li>
   </ul>
 </nav>
     </div>
@@ -257,744 +423,614 @@ window.Quarto = {
 
 
 
-<section id="introduction" class="level1">
-<h1>Introduction</h1>
-<p>The system we are going to describe consists of an inverted pendulum mounted on a motorized cart. This is very similar when you want to try keep the broom upwards on the tip of your finger. But why is it challenging?</p>
-<p>The problem is inherently unstable. Like our broomstick, once it starts to move away from its equilibrium position (straight up), gravity works to accelerate its fall. The system is also non-linear. The relation between inputs (force we exert on the broomstick) and outputs (the broomstick’s angle) isn’t directly proportional. That makes predicting and controlling its behavior a beautiful puzzle. This system is a classic example of a nonlinear and inherently unstable setup, but it’s also simple enough to understand and simulate.</p>
-<p>To make our life easier, let’s consider a simplified two-dimensional case. This system consists of two parts: the cart and the pendulum. The cart can only move horizontally, and the pendulum can freely swing back and forth. We can control the system by applying a horizontal force, <span class="math inline">\(F\)</span>, on the cart. We get feedback from the system in the form of three observations: the angle of the pendulum, the angular velocity and its angular acceleration. Using the equations of motions can help us understand how to control and balance such a system.</p>
+
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="cart.svg" class="img-fluid figure-img"></p>
-<figcaption>Forces on the cart. Red denotes forces exerted on the cart, while green forces denote forces exerted on the pendulum. ‘x’ is the position of the cart.</figcaption>
+<p><a href="broom_cart.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Balancing a broom on your finger takes some practice. Here, we model the same problem with an inverted pendulum on a cart."><img src="broom_cart.svg" class="img-fluid figure-img" alt="Side-by-side drawings of a broom balanced on a fingertip and a rod mounted on a cart. Both lean right, with curved arrows beside the hand and cart suggesting a rightward catch."></a></p>
+<figcaption>Balancing a broom on your finger takes some practice. Here, we model the same problem with an inverted pendulum on a cart.</figcaption>
+</figure>
+</div>
+<p>When a broom balanced on your finger starts leaning right, you move your hand right to catch it. If you keep your hand still, gravity makes the lean grow until the broom falls. An inverted pendulum on a cart behaves in much the same way. The cart takes the place of your hand, and we can push it left or right to try to keep the pendulum upright.</p>
+<p>Before we can simulate this, we need to work out how the cart and pendulum respond to a push. Instead of modelling a full 3D system, let’s make our life easier and consider a 2D system. The cart moves horizontally, and the pendulum swings in the same plane around a joint called the <em>pivot</em>. We’ll derive the equations of motion for this system, then use them to build a simulation we can try to balance.</p>
+</section>
+<section id="equations-of-motion" class="level2">
+<h2 class="anchored" data-anchor-id="equations-of-motion">Equations of motion</h2>
+<section id="defining-the-geometry-and-symbols" class="level3">
+<h3 class="anchored" data-anchor-id="defining-the-geometry-and-symbols">Defining the geometry and symbols</h3>
+<div id="fig-system" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A rod of mass m and length L leans right while attached to a cart of mass M. Its center of mass is halfway along the rod, a distance l equals L over two from the pivot. A dashed triangle gives the horizontal distance l sine theta and height l cosine theta of this midpoint. Theta is measured clockwise from upright, and x is measured rightward from a fixed zero on the track. At the pivot, N points right on the rod, minus N points left on the cart, and P points up on the rod. Gravity mg points down from the midpoint. Applied force F pushes the cart right, and resistance minus b x dot opposes rightward motion.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-system-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="cart_pendulum.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;1: Geometry and forces on the cart and rod. The arrows marked N and −N act on different objects. Resistance is drawn for a cart moving right; the cart’s vertical forces are omitted."><img src="cart_pendulum.svg" class="img-fluid figure-img" alt="A rod of mass m and length L leans right while attached to a cart of mass M. Its center of mass is halfway along the rod, a distance l equals L over two from the pivot. A dashed triangle gives the horizontal distance l sine theta and height l cosine theta of this midpoint. Theta is measured clockwise from upright, and x is measured rightward from a fixed zero on the track. At the pivot, N points right on the rod, minus N points left on the cart, and P points up on the rod. Gravity mg points down from the midpoint. Applied force F pushes the cart right, and resistance minus b x dot opposes rightward motion."></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-system-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Geometry and forces on the cart and rod. The arrows marked N and −N act on different objects. Resistance is drawn for a cart moving right; the cart’s vertical forces are omitted.
+</figcaption>
+</figure>
+</div>
+<p>In <a href="#fig-system" class="quarto-xref">Figure&nbsp;1</a>, <span class="math inline">\(x\)</span> represents the cart’s horizontal position, measured to the right from a fixed point on the track. <span class="math inline">\(\theta\)</span> represents the angle between the rod and the upward vertical, measured clockwise in radians.</p>
+<p>The cart has mass <span class="math inline">\(M\)</span>. We model the pendulum as a uniform rod of mass <span class="math inline">\(m\)</span> and length <span class="math inline">\(L\)</span>, with its mass spread evenly along its length. Its <em>center of mass</em> is therefore at its midpoint, a distance <span class="math inline">\(l=L/2\)</span> from the pivot.</p>
+<p>From the dashed triangle in <a href="#fig-system" class="quarto-xref">Figure&nbsp;1</a>, the center of mass is offset horizontally from the pivot by <span class="math inline">\(l\sin\theta\)</span> and vertically by <span class="math inline">\(l\cos\theta\)</span>. Its horizontal position <span class="math inline">\(x_c\)</span> and height <span class="math inline">\(y_c\)</span> above the pivot are then</p>
+<p><span id="eq-position"><span class="math display">\[
+x_c=x+l\sin\theta,\qquad y_c=l\cos\theta.
+\tag{1}\]</span></span></p>
+<p>A dot denotes a rate of change with time. The cart’s velocity and acceleration are <span class="math inline">\(\dot{x}\)</span> and <span class="math inline">\(\ddot{x}\)</span>, and the rod’s angular velocity and acceleration are <span class="math inline">\(\dot{\theta}\)</span> and <span class="math inline">\(\ddot{\theta}\)</span>.</p>
+<div id="tbl-symbols" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[12,23,65]">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-symbols-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: Symbols used in the drawing, equations, and simulation.
+</figcaption>
+<div aria-describedby="tbl-symbols-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 12%">
+<col style="width: 23%">
+<col style="width: 65%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Symbol</th>
+<th style="text-align: left;">Unit</th>
+<th style="text-align: left;">What it means</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(x\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(\mathrm{m}\)</span></td>
+<td style="text-align: left;">Cart position, measured from a fixed zero; right is positive</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(\theta\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(\mathrm{rad}\)</span></td>
+<td style="text-align: left;">Rod angle from upright; clockwise is positive</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(\dot{x}\)</span>, <span class="math inline">\(\ddot{x}\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(\mathrm{m/s}\)</span>, <span class="math inline">\(\mathrm{m/s^2}\)</span></td>
+<td style="text-align: left;">Cart velocity and acceleration</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(\dot{\theta}\)</span>, <span class="math inline">\(\ddot{\theta}\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(\mathrm{rad/s}\)</span>, <span class="math inline">\(\mathrm{rad/s^2}\)</span></td>
+<td style="text-align: left;">Rod angular velocity and angular acceleration</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(M\)</span>, <span class="math inline">\(m\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(\mathrm{kg}\)</span></td>
+<td style="text-align: left;">Cart mass and rod mass, respectively</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(L\)</span>, <span class="math inline">\(l\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(\mathrm{m}\)</span></td>
+<td style="text-align: left;">Full rod length and pivot-to-center distance, <span class="math inline">\(l=L/2\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(x_c\)</span>, <span class="math inline">\(y_c\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(\mathrm{m}\)</span></td>
+<td style="text-align: left;">Horizontal position and height of the rod’s center of mass</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(F\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(\mathrm{N}\)</span></td>
+<td style="text-align: left;">Force we apply to the cart; right is positive</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(N\)</span>, <span class="math inline">\(P\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(\mathrm{N}\)</span></td>
+<td style="text-align: left;">Pivot forces on the rod: horizontal (right positive) and vertical (up positive)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(b\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(\mathrm{N\,s/m}\)</span></td>
+<td style="text-align: left;">Cart resistance coefficient; the resisting force is <span class="math inline">\(-b\dot{x}\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(g\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(\mathrm{m/s^2}\)</span></td>
+<td style="text-align: left;">Gravitational acceleration, <span class="math inline">\(9.81\ \mathrm{m/s^2}\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(I\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(\mathrm{kg\,m^2}\)</span></td>
+<td style="text-align: left;">Rod’s moment of inertia about its center of mass</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(\tau_{\mathrm{net}}\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(\mathrm{N\,m}\)</span></td>
+<td style="text-align: left;">Net torque about the rod’s center of mass; clockwise is positive</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(t\)</span>, <span class="math inline">\(\Delta t\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(\mathrm{s}\)</span></td>
+<td style="text-align: left;">Time and the duration of one simulation step</td>
+</tr>
+</tbody>
+</table>
+</div>
 </figure>
 </div>
 </section>
-<section id="equations-of-motion" class="level1">
-<h1>Equations of motion</h1>
-<section id="carts-motion" class="level2">
-<h2 class="anchored" data-anchor-id="carts-motion">Cart’s Motion</h2>
-<p>Let’s start with the motion of the cart. When we push the cart, it experiences several forces: its own inertia due to its mass “M,” a damping factor “b” related to friction, and the force “N” coming from the pendulum.</p>
-<p><span class="math display">\[\begin{equation}
-    M\ddot{x}+b\dot{x}+N = F
-\end{equation}\]</span></p>
-<ul>
-<li><span class="math inline">\(M\)</span> is the mass of the cart.</li>
-<li><span class="math inline">\(b\)</span> friction coefficient.</li>
-<li><span class="math inline">\(\dot{x}\)</span> is the velocity of the cart.</li>
-<li><span class="math inline">\(\ddot{x}\)</span> is the acceleration of the cart.</li>
-<li><span class="math inline">\(N\)</span> is the reaction force from the pendulum.</li>
-<li><span class="math inline">\(F\)</span> is the force we apply to the cart.</li>
-</ul>
-<p>The term <span class="math inline">\(M\ddot{x}\)</span> represents the force due to the cart’s acceleration. Essentially, Newton’s second law tells us that the force exerted on an object is directly proportional to its mass and acceleration.</p>
-<p>The next term, <span class="math inline">\(b\dot{x}\)</span>, accounts for the force opposing the cart’s movement, primarily due to friction. The friction coefficient, <span class="math inline">\(b\)</span>, quantifies the amount of resistive force the cart faces, which increases with the cart’s velocity <span class="math inline">\(\dot{x}\)</span>. So, the faster the cart is moving, the greater the friction force it encounters.</p>
-<p>Lastly, <span class="math inline">\(N\)</span> is the reaction force exerted by the pendulum on the cart. As the pendulum swings, it applies a force on the cart, which the cart must counteract to maintain balance. We don’t know <span class="math inline">\(N\)</span> yet, that’s why we just noted it with an arbitrarily chosen letter. In the following section we are determining the value <span class="math inline">\(N\)</span> takes.</p>
-<p>Note that we only summed the forces on the horizontal axis. You can also sum the forces in the vertical direction for the cart, but since the cart is unable to move vertically, this is unnecessary.</p>
+<section id="forces-on-the-cart" class="level3">
+<h3 class="anchored" data-anchor-id="forces-on-the-cart">Forces on the cart</h3>
+<p>We want to find how the cart accelerates when we push it and the rod pushes back. The cart moves on a horizontal track, which supports it against the vertical forces. Since the cart cannot move up or down, we only need to model its horizontal motion.</p>
+<p>The horizontal forces in <a href="#fig-system" class="quarto-xref">Figure&nbsp;1</a> are the applied force <span class="math inline">\(F\)</span>, friction <span class="math inline">\(-b\dot{x}\)</span>, and the force <span class="math inline">\(-N\)</span> from the rod. We model friction as proportional to the cart’s velocity, with coefficient <span class="math inline">\(b\)</span>. The minus sign makes it oppose the motion.</p>
+<p>At the pivot, the cart exerts a horizontal force <span class="math inline">\(N\)</span> on the rod. The rod pushes back with the equal and opposite force <span class="math inline">\(-N\)</span>, which is the force we include in the cart’s equation. Newton’s second law gives</p>
+<p><span id="eq-cart"><span class="math display">\[
+M\ddot{x}=F-b\dot{x}-N.
+\tag{2}\]</span></span></p>
+<p>The force from the rod is still unknown. To determine it, we need to describe how the rod moves.</p>
 </section>
-<section id="pendulums-motion" class="level2">
-<h2 class="anchored" data-anchor-id="pendulums-motion">Pendulum’s Motion</h2>
-<p>When discussing the motion of the pendulum, it’s crucial to consider both the horizontal and vertical forces acting on it. This is because the pendulum, unlike the cart, can move in both directions due to its rotational nature.</p>
-<section id="horizontal" class="level3">
-<h3 class="anchored" data-anchor-id="horizontal">Horizontal</h3>
-<p>The horizontal forces acting on the pendulum are captured by the equation:</p>
-<p><span class="math display">\[\begin{equation}
-N = m\ddot{x}+ml\ddot{\theta}\cos\theta-ml\dot{\theta}^2\sin\theta
-\end{equation}\]</span></p>
-<ul>
-<li><span class="math inline">\(m\)</span> is the mass of the pendulum.</li>
-<li><span class="math inline">\(l\)</span> is the length of the pendulum.</li>
-<li><span class="math inline">\(\theta\)</span> is the angle of the pendulum.</li>
-<li><span class="math inline">\(\dot{\theta}\)</span> is the angular velocity</li>
-<li><span class="math inline">\(\ddot{\theta}\)</span> is the angular acceleration.</li>
-<li><span class="math inline">\(N\)</span> is the pendulum’s reaction force.</li>
-</ul>
-<p>This equation essentially describes how the pendulum’s motion is influenced by the cart’s movement and its own inertia. The term <span class="math inline">\(m\ddot{x}\)</span> is the force exerted on the pendulum due to the acceleration of the cart. The term <span class="math inline">\(ml\ddot{\theta}\cos\theta\)</span> describes the force on the pendulum due to its own angular acceleration, while −<span class="math inline">\(ml\dot{\theta}^2\sin\theta\)</span> accounts for the centrifugal force acting on the pendulum as it swings.</p>
-<p>Now, we can substitute this back in to the cart’s equation, which gives us: <span class="math display">\[\begin{equation}
-    (M+m)\ddot{x}+b\dot{x}+ml\ddot{\theta}\cos\theta-ml\dot{\theta}^2\sin\theta=F
-\label{eq:horizontal}  \tag{1}
-\end{equation}\]</span></p>
+<section id="forces-on-the-rod" class="level3">
+<h3 class="anchored" data-anchor-id="forces-on-the-rod">Forces on the rod</h3>
+<p>The rod can move and turn at the same time. We’ll first describe how its center of mass moves, then calculate how its angle changes. Its lower end stays attached to the cart, so the pivot moves horizontally with the cart while the center of mass can also rise and fall.</p>
+<p>In <a href="#fig-system" class="quarto-xref">Figure&nbsp;1</a>, the cart exerts the horizontal force <span class="math inline">\(N\)</span> and the vertical force <span class="math inline">\(P\)</span> on the rod at the pivot. Gravity <span class="math inline">\(mg\)</span> acts downward at the center of mass. We neglect air resistance and friction in the pivot.</p>
+<p>A push at one end can move the whole rod as well as turn it. Newton’s second law uses the sum of all external forces on the rod to determine the acceleration of its center of mass. The points where those forces act will also matter when we calculate the rotation. Adding the horizontal and vertical forces separately gives</p>
+<p><span id="eq-rod-forces"><span class="math display">\[
+N=m\ddot{x}_c,\qquad P-mg=m\ddot{y}_c.
+\tag{3}\]</span></span></p>
+<p>These equations tell us how to find the pivot forces once we know the center-of-mass acceleration. We already have its position in <a href="#eq-position" class="quarto-xref">Equation&nbsp;1</a>. Differentiating the two coordinates with respect to time gives the velocities</p>
+<p><span id="eq-center-velocity"><span class="math display">\[
+\dot{x}_c=\dot{x}+l\dot{\theta}\cos\theta,\qquad
+\dot{y}_c=-l\dot{\theta}\sin\theta.
+\tag{4}\]</span></span></p>
+<p>Differentiating once more, using the product and chain rules, gives the accelerations</p>
+<p><span id="eq-center-acceleration"><span class="math display">\[
+\begin{aligned}
+\ddot{x}_c&amp;=\ddot{x}+l\ddot{\theta}\cos\theta-l\dot{\theta}^2\sin\theta,\\
+\ddot{y}_c&amp;=-l\ddot{\theta}\sin\theta-l\dot{\theta}^2\cos\theta.
+\end{aligned}
+\tag{5}\]</span></span></p>
+<p>We can now substitute <span class="math inline">\(N=m\ddot{x}_c\)</span> from <a href="#eq-rod-forces" class="quarto-xref">Equation&nbsp;3</a> into the cart’s equation, <a href="#eq-cart" class="quarto-xref">Equation&nbsp;2</a>, using the expression for <span class="math inline">\(\ddot{x}_c\)</span> above. Collecting the two unknown accelerations on the left gives</p>
+<p><span id="eq-horizontal"><span class="math display">\[
+(M+m)\ddot{x}+ml\cos\theta\,\ddot{\theta}
+=F-b\dot{x}+ml\dot{\theta}^2\sin\theta.
+\tag{6}\]</span></span></p>
+<p>This is the first equation of our system. It accounts for the horizontal forces on both the cart and the rod, but contains two unknown accelerations, <span class="math inline">\(\ddot{x}\)</span> and <span class="math inline">\(\ddot{\theta}\)</span>. The second equation will come from the rod’s rotation.</p>
 </section>
-<section id="vertical" class="level3">
-<h3 class="anchored" data-anchor-id="vertical">Vertical</h3>
-<p>So far we only dealt with the horizontal forces. To get the vertical forces for this system, we sum the forces perpendicular to the pendulum:</p>
-<p><span class="math display">\[\begin{equation}
-P\sin\theta+N\cos\theta-mg\sin\theta=ml\ddot{\theta}+m\ddot{x}\cos\theta
-\end{equation}\]</span></p>
-<ul>
-<li><span class="math inline">\(P\)</span> is the vertical component the cart is pushing back on the pendulum.</li>
-<li><span class="math inline">\(g\)</span> is the acceleration due to gravity.</li>
-</ul>
-<p>In this equation, <span class="math inline">\(P\)</span> is the vertical component of the reaction force with which the cart pushes back on the pendulum. The gravitational force acting on the pendulum is represented by <span class="math inline">\(mg\sin\theta\)</span>, which tries to pull the pendulum downward. The right side of the equation relates to the forces due to the pendulum’s angular acceleration and the cart’s linear acceleration.</p>
-<p>We need to get rid of <span class="math inline">\(P\)</span> and <span class="math inline">\(N\)</span>. To do that we sum the moments about the centroid of the pendulum to get the following equation: <span class="math display">\[\begin{equation}
--Pl\sin\theta-Nl\cos\theta=I\ddot{\theta}
-\end{equation}\]</span></p>
-<ul>
-<li><span class="math inline">\(I\)</span> is the mass moment of inertia of the pendulum.</li>
-</ul>
-<p>Combining these last two expressions, we get the vertical forces of the system: <span class="math display">\[\begin{equation}
-(I+ml^2)\ddot{\theta}+mgl\sin\theta=-ml\ddot{x}\cos\theta
-\label{eq:vertical}  \tag{2}
-\end{equation}\]</span></p>
-<p>In our case <span class="math inline">\(I=m(\frac{l}{2})^2\)</span>, (you can look up the moment of inertia for different shaped objects).</p>
+<section id="rotation-of-the-rod" class="level3">
+<h3 class="anchored" data-anchor-id="rotation-of-the-rod">Rotation of the rod</h3>
+<div id="fig-rod-torque" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A rod leaning right is attached to a cart. The horizontal force N and upward force P act at the lower pivot. Dashed arrows at the pivot show the component N cosine theta pointing down and right, and P sine theta pointing up and left, both perpendicular to the rod. The center of mass is the reference for calculating torque. Perpendicular lever arms are l sine theta for P and l cosine theta for N. Gravity mg acts downward through the center of mass with zero lever arm.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-rod-torque-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="rod_torque.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;2: The solid arrows show the forces on the rod. The dashed arrows resolve the pivot forces into components perpendicular to the rod; they are not additional forces. Gravity acts through the center of mass, so its lever arm is zero."><img src="rod_torque.svg" class="img-fluid figure-img" alt="A rod leaning right is attached to a cart. The horizontal force N and upward force P act at the lower pivot. Dashed arrows at the pivot show the component N cosine theta pointing down and right, and P sine theta pointing up and left, both perpendicular to the rod. The center of mass is the reference for calculating torque. Perpendicular lever arms are l sine theta for P and l cosine theta for N. Gravity mg acts downward through the center of mass with zero lever arm."></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rod-torque-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: The solid arrows show the forces on the rod. The dashed arrows resolve the pivot forces into components perpendicular to the rod; they are not additional forces. Gravity acts through the center of mass, so its lever arm is zero.
+</figcaption>
+</figure>
+</div>
+<p>To complete the description of the rod’s motion, we need to find how its angle changes. A force’s turning effect is its <em>torque</em>, measured about a chosen reference point. We’ll calculate torques about the center of mass shown in <a href="#fig-rod-torque" class="quarto-xref">Figure&nbsp;2</a>. This lets us describe the rod’s motion as the movement of its center of mass together with a change in orientation, even while the pivot moves with the cart.</p>
+<p>The rotational counterpart of <span class="math inline">\(F=ma\)</span> relates the net torque <span class="math inline">\(\tau_{\mathrm{net}}\)</span> to the angular acceleration <span class="math inline">\(\ddot{\theta}\)</span>,</p>
+<p><span id="eq-newton-rotation"><span class="math display">\[
+\tau_{\mathrm{net}}=I\ddot{\theta}.
+\tag{7}\]</span></span></p>
+<p>Here, the torque and the <em>moment of inertia</em> <span class="math inline">\(I\)</span> are both measured about the center of mass. The moment of inertia plays the role of mass in rotation; a larger value means the same torque produces less angular acceleration. For a thin, uniform rod, its <a href="https://openstax.org/books/university-physics-volume-1/pages/10-5-calculating-moments-of-inertia">value about the center of mass</a> is</p>
+<p><span id="eq-inertia"><span class="math display">\[
+I=\frac{mL^2}{12}.
+\tag{8}\]</span></span></p>
+<p>A force’s torque has magnitude equal to the force multiplied by the perpendicular distance from the reference point to its line of action. In <a href="#fig-rod-torque" class="quarto-xref">Figure&nbsp;2</a>, the upward force <span class="math inline">\(P\)</span> has the horizontal lever arm <span class="math inline">\(l\sin\theta\)</span>. The rightward force <span class="math inline">\(N\)</span> has the vertical lever arm <span class="math inline">\(l\cos\theta\)</span>. Gravity acts through the reference point itself, so its lever arm and torque about that point are zero.</p>
+<p>We can also calculate these torques using the dashed force components perpendicular to the rod. Their magnitudes are <span class="math inline">\(P\sin\theta\)</span> and <span class="math inline">\(N\cos\theta\)</span>; multiplying each by the distance <span class="math inline">\(l\)</span> from the pivot to the center of mass gives the same torques.</p>
+<p>For the orientation shown, <span class="math inline">\(P\)</span> contributes a clockwise torque and <span class="math inline">\(N\)</span> a counterclockwise torque about the center of mass. Counting clockwise as positive, we substitute these torques into <a href="#eq-newton-rotation" class="quarto-xref">Equation&nbsp;7</a>,</p>
+<p><span id="eq-torque"><span class="math display">\[
+I\ddot{\theta}=lP\sin\theta-lN\cos\theta.
+\tag{9}\]</span></span></p>
+<p>We can remove <span class="math inline">\(N\)</span> and <span class="math inline">\(P\)</span> using the force equations we wrote earlier. From <a href="#eq-rod-forces" class="quarto-xref">Equation&nbsp;3</a>, <span class="math inline">\(N=m\ddot{x}_c\)</span> and <span class="math inline">\(P=mg+m\ddot{y}_c\)</span>. Substituting these into the torque equation gives</p>
+<p><span id="eq-substitute-forces"><span class="math display">\[
+I\ddot{\theta}=mgl\sin\theta
++ml\left(\ddot{y}_c\sin\theta-\ddot{x}_c\cos\theta\right).
+\tag{10}\]</span></span></p>
+<p>All that remains is to substitute the accelerations from <a href="#eq-center-acceleration" class="quarto-xref">Equation&nbsp;5</a>. In <span class="math inline">\(\ddot{y}_c\sin\theta-\ddot{x}_c\cos\theta\)</span>, the terms involving <span class="math inline">\(\dot{\theta}^2\)</span> cancel. One is <span class="math inline">\(-l\dot{\theta}^2\cos\theta\sin\theta\)</span> and the other is its positive counterpart. The remaining terms simplify using the <a href="https://en.wikipedia.org/wiki/Pythagorean_trigonometric_identity">Pythagorean trigonometric identity</a>, <span class="math inline">\(\sin^2\theta+\cos^2\theta=1\)</span>,</p>
+<p><span id="eq-acceleration-combination"><span class="math display">\[
+\begin{aligned}
+\ddot{y}_c\sin\theta-\ddot{x}_c\cos\theta
+&amp;=-\ddot{x}\cos\theta-l\ddot{\theta}(\sin^2\theta+\cos^2\theta)\\
+&amp;=-\ddot{x}\cos\theta-l\ddot{\theta}.
+\end{aligned}
+\tag{11}\]</span></span></p>
+<p>Substituting this result into <a href="#eq-substitute-forces" class="quarto-xref">Equation&nbsp;10</a> and gathering the accelerations on the left gives our second equation of motion,</p>
+<p><span id="eq-rotation"><span class="math display">\[
+ml\cos\theta\,\ddot{x}+(I+ml^2)\ddot{\theta}=mgl\sin\theta.
+\tag{12}\]</span></span></p>
+<p>To see what <a href="#eq-rotation" class="quarto-xref">Equation&nbsp;12</a> predicts for the right-leaning rod in <a href="#fig-system" class="quarto-xref">Figure&nbsp;1</a>, we can put its angular acceleration on its own,</p>
+<p><span id="eq-angular-acceleration"><span class="math display">\[
+\ddot{\theta}=\frac{mgl\sin\theta-ml\ddot{x}\cos\theta}{I+ml^2}.
+\tag{13}\]</span></span></p>
+<p>For a small rightward tilt, <span class="math inline">\(\sin\theta\)</span> and <span class="math inline">\(\cos\theta\)</span> are both positive. With the cart held still, <span class="math inline">\(\ddot{x}=0\)</span>, so gravity gives a positive angular acceleration. A rod released from rest will therefore lean farther right. Accelerating the cart right makes <span class="math inline">\(\ddot{x}\)</span> positive, so the second term in the numerator subtracts from gravity’s contribution. If it is large enough to make the numerator negative, <span class="math inline">\(\ddot{\theta}&lt;0\)</span> and a rod falling right begins to slow. This is the effect we need when we move our hand underneath a leaning broom.</p>
 </section>
 </section>
-</section>
-<section id="matrix-form-of-the-system" class="level1">
-<h1>Matrix Form of the System</h1>
-<p>From Equation <span class="math inline">\(\eqref{eq:horizontal}\)</span> and Equation <span class="math inline">\(\eqref{eq:vertical}\)</span> we can write the final equations of motion:</p>
-<p><span class="math display">\[\begin{align*}
+<section id="matrix-form" class="level2">
+<h2 class="anchored" data-anchor-id="matrix-form">Matrix form</h2>
+<p>We now have two equations, <a href="#eq-horizontal" class="quarto-xref">Equation&nbsp;6</a> and <a href="#eq-rotation" class="quarto-xref">Equation&nbsp;12</a>, relating the cart’s acceleration to the rod’s angular acceleration. Both have to hold at the same time. Writing them together in matrix form lets us solve for <span class="math inline">\(\ddot{x}\)</span> and <span class="math inline">\(\ddot{\theta}\)</span> in one calculation.</p>
+<p><span id="eq-matrix"><span class="math display">\[
 \begin{bmatrix}
-  M+m &amp; mlcos(\theta) \\
-  cos(\theta)ml &amp; m(\frac{l}{2})^2 + m{l}^2
-\end{bmatrix}  
-\begin{bmatrix}
-  \ddot{x} \\
-  \ddot{\theta}
-\end{bmatrix} =
-\begin{bmatrix}
-  F+ml{\dot{\theta}}^2\sin(\theta)-b\dot{x} \\
-  -mgl sin(\theta)
+M+m &amp; ml\cos\theta \\
+ml\cos\theta &amp; I+ml^2
 \end{bmatrix}
-\end{align*}\]</span></p>
-<p>This is in the form <span class="math inline">\(As=b\)</span>, where we are looking for <span class="math inline">\(s\)</span>, which describes the current state of the system, such as the cart’s acceleration and pendulum’s angular acceleration. If we can solve the equation for <span class="math inline">\(s\)</span>, we can get the accelerations and run a simulation. This can be done, by getting the inverse of <span class="math inline">\(A\)</span>, such as: <span class="math inline">\(s=b^T*{(A^T)}^{-1}\)</span>. After we get <span class="math inline">\(s\)</span>, we can use Euler’s method to calculate the position of the cart and the pendulum.</p>
+\begin{bmatrix}
+\ddot{x} \\
+\ddot{\theta}
+\end{bmatrix}
+=
+\begin{bmatrix}
+F-b\dot{x}+ml\dot{\theta}^2\sin\theta \\
+mgl\sin\theta
+\end{bmatrix}.
+\tag{14}\]</span></span></p>
+<p>The first row is the cart’s equation, and the second row is the rod’s rotational equation. The matrix on the left contains the coefficients multiplying the two accelerations. At a given instant, the masses and length are fixed, the angle and velocities come from the current state, and we choose the applied force <span class="math inline">\(F\)</span>. That gives us all the values needed to solve for the accelerations.</p>
+<p>We can write this as <span class="math inline">\(A\mathbf{a}=\mathbf{r}\)</span>, where <span class="math inline">\(A\)</span> is the coefficient matrix, <span class="math inline">\(\mathbf{a}\)</span> contains the two unknown accelerations, and <span class="math inline">\(\mathbf{r}\)</span> is the column on the right. The function <a href="https://numpy.org/doc/stable/reference/generated/numpy.linalg.solve.html"><code>numpy.linalg.solve(A, r)</code></a> calculates those accelerations for us. They tell us how the motion is changing right now. To turn them into a simulation, we need a way to advance the position and angle through time.</p>
 </section>
-<section id="running-a-simulation-using-eulers-method" class="level1">
-<h1>Running a Simulation Using Euler’s Method:</h1>
-<p>The beauty of Euler’s method is its simplicity. We’re essentially predicting the future (next state of the system) based on the present (current state) and a tiny step forward in time. It is a numerical technique to approximate a solution, where the exact solution can’t be calculated or just too hard to calculate. Formally, given an initial state, the method estimates the next state by taking a small step based on the rate of change.</p>
-<p>However, a word of caution: Euler’s method isn’t perfect. The smaller the step, the more accurate our predictions, but it also means more computational work. We can spead up the simulation by taking larger steps, but in turn this leads to inaccuracies.</p>
-<p>In our pendulum+cart case, we actually never determined the exact position of the cart for a given time <span class="math inline">\(t\)</span>. We have no clue where is the pendulum e.g.&nbsp;after 12 seconds, by substituting the values back into the equation we derived above. We only described how the system changes from one moment to another. However, if we know how the system changes, we can still calculate how it will move around as time passes. If we have an initial state and by only doing very small steps (we can do this since we know how the system changes), we can approximate where the cart and pendulum will be as time passes.</p>
-<p>So in a more formal way:</p>
-<ol type="1">
-<li>Start with initial conditions for <span class="math inline">\(x\)</span>, <span class="math inline">\(\dot{x}\)</span>, <span class="math inline">\(\theta\)</span>, and <span class="math inline">\(\dot{\theta}\)</span>.</li>
-<li>Calculate accelerations <span class="math inline">\(\ddot{x}\)</span> and <span class="math inline">\(\ddot{\theta}\)</span> using the matrix equations.</li>
-<li>Update the velocities and positions:
-<ul>
-<li><span class="math inline">\(\dot{x}_{new}=\dot{x}_{old}+\ddot{x}\times\)</span> <span class="math inline">\(dt\)</span></li>
-<li><span class="math inline">\(x_{new}=x_{old}+\dot{x}_{new}\times\)</span> <span class="math inline">\(dt\)</span></li>
-<li><span class="math inline">\(\dot{\theta}_{new}=\dot{\theta}_{old}+\ddot{\theta}\times\)</span> <span class="math inline">\(dt\)</span></li>
-<li><span class="math inline">\(\theta_{new}=\theta_{old}+\dot{\theta}_{new}\times\)</span> <span class="math inline">\(dt\)</span></li>
-</ul></li>
-<li>Repeat for the desired number of steps or until we reach the end of simulation (e.g.&nbsp;12 seconds).</li>
-</ol>
+<section id="eulers-method" class="level2">
+<h2 class="anchored" data-anchor-id="eulers-method">Euler’s method</h2>
+<div id="fig-euler" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A steeply curving blue exponential is compared with two Euler approximations. Solid orange segments with square nodes use a step size of 0.25 and fall well below the exact curve. A dashed green line with smaller nodes uses a step size of 0.05 and follows the exact curve more closely. The starting point of the final coarse step is labeled with its slope dy over dt equals 3y. A right triangle shows that step's width of 0.25 and rise equal to the derivative times that width.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-euler-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="euler_method.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;3: Euler’s method for \dot{y}=3y, starting at y(0)=1. The two step sizes give different approximations to y=e^{3t}. The marked derivative determines the rise of the final coarse step."><img src="euler_method.svg" class="img-fluid figure-img" alt="A steeply curving blue exponential is compared with two Euler approximations. Solid orange segments with square nodes use a step size of 0.25 and fall well below the exact curve. A dashed green line with smaller nodes uses a step size of 0.05 and follows the exact curve more closely. The starting point of the final coarse step is labeled with its slope dy over dt equals 3y. A right triangle shows that step's width of 0.25 and rise equal to the derivative times that width."></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-euler-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Euler’s method for <span class="math inline">\(\dot{y}=3y\)</span>, starting at <span class="math inline">\(y(0)=1\)</span>. The two step sizes give different approximations to <span class="math inline">\(y=e^{3t}\)</span>. The marked derivative determines the rise of the final coarse step.
+</figcaption>
+</figure>
+</div>
+<p>The beauty of Euler’s method is its simplicity. We can approximate a function from its rate of change and a starting value, without knowing an explicit formula for the function itself. The derivative gives us the slope at the current point. Over a short interval, we can approximate the function with a straight line following that slope. At the end of the step, we calculate a new slope and repeat.</p>
+<p>In <a href="#fig-euler" class="quarto-xref">Figure&nbsp;3</a>, the differential equation is <span class="math inline">\(\dot{y}=3y\)</span>, so the slope is three times the current value of <span class="math inline">\(y\)</span>. Starting at <span class="math inline">\(y=1\)</span>, the slope is <span class="math inline">\(3\)</span>. A step of <span class="math inline">\(0.25\)</span> gives <span class="math inline">\(1+3\times0.25=1.75\)</span>. The next slope is <span class="math inline">\(3\times1.75=5.25\)</span>, so the next value is <span class="math inline">\(1.75+5.25\times0.25=3.0625\)</span>. Repeating this calculation gives the four straight segments in the figure.</p>
+<p>More generally, if <span class="math inline">\(y_n\)</span> is our current estimate and <span class="math inline">\(\dot{y}_n\)</span> is the derivative calculated from that estimate, an Euler step is</p>
+<p><span id="eq-euler-step"><span class="math display">\[
+y_{n+1}=y_n+\dot{y}_n\,\Delta t.
+\tag{15}\]</span></span></p>
+<p>The straight segments in <a href="#fig-euler" class="quarto-xref">Figure&nbsp;3</a> approximate the curved solution. They drift below it because the slope is increasing within each step, while we keep using the slope from the start. The dashed approximation uses <span class="math inline">\(\Delta t=0.05\)</span> instead of <span class="math inline">\(0.25\)</span>. Updating the slope five times as often brings it closer to the exact curve. The exact curve is available for this example, but we don’t need it to perform the calculation.</p>
+<p>Our cart and pendulum work the same way. Acceleration is the rate of change of velocity, and velocity is the rate of change of position. Starting from the current position, angle, and velocities, we solve <a href="#eq-matrix" class="quarto-xref">Equation&nbsp;14</a> for the accelerations. We then use those accelerations to update the velocities, and use the new velocities to update the position and angle,</p>
+<p><span id="eq-euler-update"><span class="math display">\[
+\begin{aligned}
+\dot{x}_{\mathrm{new}}&amp;=\dot{x}+\ddot{x}\,\Delta t, &amp;
+x_{\mathrm{new}}&amp;=x+\dot{x}_{\mathrm{new}}\,\Delta t,\\
+\dot{\theta}_{\mathrm{new}}&amp;=\dot{\theta}+\ddot{\theta}\,\Delta t, &amp;
+\theta_{\mathrm{new}}&amp;=\theta+\dot{\theta}_{\mathrm{new}}\,\Delta t.
+\end{aligned}
+\tag{16}\]</span></span></p>
+<p>Updating the velocities before the positions is called the <a href="https://www.compadre.org/PICUP/resources/Numerical-Integration/">Euler–Cromer method</a>. The linked explanation compares this update order with using the old velocities.</p>
+<p>We repeat the calculation with the updated state at each timestep. This lets us find where the pendulum is after, say, 12 seconds, even though we never derived a formula for its position as a function of time. For the simulation below, we’ll use <span class="math inline">\(\Delta t=0.001\ \mathrm{s}\)</span>. Halving the timestep and comparing the motion over the same interval shows how much the result depends on the step size.</p>
 </section>
-<section id="putting-it-all-together" class="level1">
-<h1>Putting it all together</h1>
-<p>Now that we defined the system, we can write our lil simulation of the inverted pendulum on a cart:</p>
-<div id="cell-3" class="cell" data-executetime="{&quot;end_time&quot;:&quot;2023-10-24T15:29:38.970201049Z&quot;,&quot;start_time&quot;:&quot;2023-10-24T15:29:38.955384542Z&quot;}" data-execution_count="1">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<section id="simulation" class="level2">
+<h2 class="anchored" data-anchor-id="simulation">Simulation</h2>
+<div id="fig-free-motion" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Two simulated time series over 1.2 seconds. The rod's angle grows from 5.73 degrees to about 251 degrees. The cart moves left to roughly minus 0.15 metres, then reverses and reaches roughly plus 0.18 metres.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-free-motion-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="free_motion.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;4: Unforced motion from a 0.1 radian initial tilt, using the parameters and 1 ms timestep in the code below."><img src="free_motion.svg" class="img-fluid figure-img" alt="Two simulated time series over 1.2 seconds. The rod's angle grows from 5.73 degrees to about 251 degrees. The cart moves left to roughly minus 0.15 metres, then reverses and reaches roughly plus 0.18 metres."></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-free-motion-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Unforced motion from a 0.1 radian initial tilt, using the parameters and 1 ms timestep in the code below.
+</figcaption>
+</figure>
+</div>
+<p>With no applied force, the initial tilt grows and the rod falls, as shown in <a href="#fig-free-motion" class="quarto-xref">Figure&nbsp;4</a>. The cart’s position in the lower plot initially decreases, even though we aren’t applying a force to it. It then reverses direction as the rod swings around the pivot.</p>
+<p>The angle in the upper plot passes <span class="math inline">\(180^\circ\)</span>, where the rod points straight down. By 1.2 seconds, the rod has passed the bottom and is rising on the other side. The cart moves throughout this fall because of the force transmitted through the pivot.</p>
+<p>Starting exactly upright and motionless, with no applied force, would give zero acceleration for both the cart and rod. The ideal simulation would stay there indefinitely. Instability means that a small disturbance grows, so we give the rod the <span class="math inline">\(0.1\)</span> radian initial tilt used above.</p>
+<p>The code follows the same order as the calculation. <code>A</code> and <code>r</code> come from <a href="#eq-matrix" class="quarto-xref">Equation&nbsp;14</a>; <code>v</code> is <span class="math inline">\(\dot{x}\)</span> and <code>omega</code> is <span class="math inline">\(\dot{\theta}\)</span>. Both accelerations are calculated before we update either velocity.</p>
+<div id="simulation-code">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>G <span class="op">=</span> <span class="fl">9.81</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> CartPendulum:</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, dt, length<span class="op">=</span><span class="fl">200.</span>, pendulum_mass<span class="op">=</span><span class="fl">0.5</span>, cart_mass<span class="op">=</span><span class="fl">1.</span>, friction_coefficient<span class="op">=</span><span class="fl">0.0008</span>):</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.dt <span class="op">=</span> dt</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.length <span class="op">=</span> length</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.pendulum_mass <span class="op">=</span> pendulum_mass</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.cart_mass <span class="op">=</span> cart_mass</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.friction_coefficient <span class="op">=</span> friction_coefficient</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.cart_pos <span class="op">=</span> <span class="fl">0.</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.cart_speed <span class="op">=</span> <span class="fl">0.</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.pendulum_angle <span class="op">=</span> np.pi <span class="op">/</span> <span class="fl">2.</span> <span class="op">+</span> <span class="fl">1e-1</span>  <span class="co"># angle</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.pendulum_speed <span class="op">=</span> <span class="fl">0.</span>  <span class="co"># angular speed</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.friction_force <span class="op">=</span> <span class="fl">0.</span></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>M, m, L <span class="op">=</span> <span class="fl">1.0</span>, <span class="fl">0.5</span>, <span class="fl">1.0</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>b, g <span class="op">=</span> <span class="fl">0.1</span>, <span class="fl">9.81</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>l <span class="op">=</span> L <span class="op">/</span> <span class="dv">2</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>I <span class="op">=</span> m <span class="op">*</span> L<span class="op">**</span><span class="dv">2</span> <span class="op">/</span> <span class="dv">12</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> step(state, force, dt):</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    x, v, theta, omega <span class="op">=</span> state</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    coupling <span class="op">=</span> m <span class="op">*</span> l <span class="op">*</span> np.cos(theta)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    A <span class="op">=</span> np.array([</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>        [M <span class="op">+</span> m, coupling],</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>        [coupling, I <span class="op">+</span> m <span class="op">*</span> l<span class="op">**</span><span class="dv">2</span>],</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    ])</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    r <span class="op">=</span> np.array([</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>        force <span class="op">-</span> b <span class="op">*</span> v <span class="op">+</span> m <span class="op">*</span> l <span class="op">*</span> omega<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> np.sin(theta),</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>        m <span class="op">*</span> g <span class="op">*</span> l <span class="op">*</span> np.sin(theta),</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    ])</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    cart_acc, angular_acc <span class="op">=</span> np.linalg.solve(A, r)</span>
 <span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> step(<span class="va">self</span>, force_on_cart):</span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>        pendulum_mass_length <span class="op">=</span> <span class="va">self</span>.pendulum_mass <span class="op">*</span> <span class="va">self</span>.length</span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>        total_mass <span class="op">=</span> <span class="va">self</span>.cart_mass <span class="op">+</span> <span class="va">self</span>.pendulum_mass</span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>        pendulum_inertia <span class="op">=</span> <span class="va">self</span>.length <span class="op">**</span> <span class="dv">2</span> <span class="op">*</span> <span class="va">self</span>.pendulum_mass <span class="op">+</span> <span class="va">self</span>.pendulum_mass <span class="op">*</span> (<span class="va">self</span>.length <span class="op">/</span> <span class="fl">2.</span>) <span class="op">**</span> <span class="dv">2</span></span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>        cosphi <span class="op">=</span> np.cos(<span class="va">self</span>.pendulum_angle)</span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>        sinphi <span class="op">=</span> <span class="op">-</span>np.sin(<span class="va">self</span>.pendulum_angle)</span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.friction_force <span class="op">=</span> <span class="op">-</span><span class="va">self</span>.friction_coefficient <span class="op">*</span> <span class="va">self</span>.cart_speed <span class="op">**</span> <span class="fl">2.</span> <span class="op">*</span> np.sign(<span class="va">self</span>.cart_speed)</span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>        cart_acc <span class="op">=</span> ((cosphi <span class="op">*</span> pendulum_mass_length <span class="op">*</span> <span class="va">self</span>.pendulum_speed <span class="op">**</span> <span class="dv">2</span> <span class="op">+</span> force_on_cart <span class="op">+</span> <span class="va">self</span>.friction_force) <span class="op">*</span> pendulum_inertia <span class="op">-</span></span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>                    (pendulum_mass_length <span class="op">*</span> <span class="op">-</span>G <span class="op">*</span> cosphi) <span class="op">*</span> (pendulum_mass_length<span class="op">*</span>sinphi)) <span class="op">/</span> <span class="op">\</span></span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>                   (total_mass <span class="op">*</span> pendulum_inertia <span class="op">-</span> pendulum_mass_length<span class="op">*</span>sinphi<span class="op">*</span>pendulum_mass_length<span class="op">*</span>sinphi)</span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>        angular_acc <span class="op">=</span> (<span class="op">-</span>cart_acc <span class="op">*</span> pendulum_mass_length <span class="op">*</span> sinphi <span class="op">+</span> (pendulum_mass_length <span class="op">*</span> <span class="op">-</span>G <span class="op">*</span> cosphi)) <span class="op">/</span> pendulum_inertia</span>
-<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.cart_pos <span class="op">+=</span> <span class="va">self</span>.cart_speed <span class="op">*</span> <span class="va">self</span>.dt</span>
-<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.cart_speed <span class="op">+=</span> cart_acc <span class="op">*</span> <span class="va">self</span>.dt</span>
-<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.pendulum_angle <span class="op">+=</span> <span class="va">self</span>.pendulum_speed <span class="op">*</span> <span class="va">self</span>.dt</span>
-<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.pendulum_speed <span class="op">+=</span> angular_acc <span class="op">*</span> <span class="va">self</span>.dt</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    v <span class="op">+=</span> cart_acc <span class="op">*</span> dt</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    omega <span class="op">+=</span> angular_acc <span class="op">*</span> dt</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    x <span class="op">+=</span> v <span class="op">*</span> dt</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    theta <span class="op">+=</span> omega <span class="op">*</span> dt</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> x, v, theta, omega</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">"__main__"</span>:</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    state <span class="op">=</span> (<span class="fl">0.0</span>, <span class="fl">0.0</span>, <span class="fl">0.1</span>, <span class="fl">0.0</span>)</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1200</span>):</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>        state <span class="op">=</span> step(state, force<span class="op">=</span><span class="fl">0.0</span>, dt<span class="op">=</span><span class="fl">0.001</span>)</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>    x, v, theta, omega <span class="op">=</span> state</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"x = </span><span class="sc">{</span>x<span class="sc">:.3f}</span><span class="ss"> m, theta = </span><span class="sc">{</span>np<span class="sc">.</span>degrees(theta)<span class="sc">:.1f}</span><span class="ss"> degrees"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<p>After 1.2 seconds, the simulation prints</p>
+<pre class="text"><code>x = 0.176 m, theta = 251.4 degrees</code></pre>
+<p>Now we can try balancing it ourselves.</p>
+<iframe src="pendulum_demo.html" title="Interactive cart and pendulum simulation with adjustable masses and force" loading="lazy" style="width:100%;height:710px;border:1px solid #94a3b8;border-radius:8px;">
+</iframe>
+<p>If you bring the rod back to upright and release the force while it is still rotating, it falls to the other side. Reaching the right angle is only part of balancing it; we also have to slow its rotation. In <a href="../../posts/002_fuzzy_control/englert_ai_2_fuzzy_control.html">the next post</a>, we’ll use a fuzzy controller to decide how to push based on both the angle and angular velocity.</p>
 </section>
-<section id="fin" class="level1">
-<h1>Fin</h1>
-<video width="100%" src="pendulum_on_cart.mp4" controls="">
-</video>
-</section>
-<section id="citation" class="level1">
-<h1>Citation</h1>
+<section id="citation" class="level2">
+<h2 class="anchored" data-anchor-id="citation">Citation</h2>
 <p>Cited as:</p>
-<pre><code>Englert, Brunó B. (Jul 2023). 2D Physics of The Inverted Pendulum on a Cart. https://englert.ai/posts/001_inverted_pendulum/englert_ai_1_cart_physics.html.</code></pre>
+<p>Englert, Brunó B. (July 26, 2023). <em>2D Physics of the Inverted Pendulum on a Cart</em>. <a href="https://englert.ai/posts/001_inverted_pendulum/englert_ai_1_cart_physics.html">englert.ai</a>.</p>
 <p>Or</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode ruby code-with-copy"><code class="sourceCode ruby"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ot">@article</span><span class="kw">{</span>englert2023physicscartpole,</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  title   <span class="kw">=</span> <span class="st">"2D Physics of The Inverted Pendulum on a Cart"</span>,</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  author  <span class="kw">=</span> <span class="st">"Englert, Brunó B."</span>,</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  journal <span class="kw">=</span> <span class="st">"englert.ai"</span>,</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  year    <span class="kw">=</span> <span class="st">"2023"</span>,</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  month   <span class="kw">=</span> <span class="st">"Jul"</span>,</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  url     <span class="kw">=</span> <span class="st">"https://englert.ai/posts/001_inverted_pendulum/englert_ai_1_cart_physics.html"</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="kw">}</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>The code to reproduce the visualization:</p>
-<div id="cell-7" class="cell" data-executetime="{&quot;end_time&quot;:&quot;2023-10-24T15:29:40.213372016Z&quot;,&quot;start_time&quot;:&quot;2023-10-24T15:29:40.016574369Z&quot;}" data-execution_count="2">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> math</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> arcade</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> arcade</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>SCREEN_WIDTH <span class="op">=</span> <span class="dv">1200</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>SCREEN_HEIGHT <span class="op">=</span> <span class="dv">600</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Simulation:</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>):</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.cart_pendulum <span class="op">=</span> CartPendulum(<span class="fl">0.05</span>)</span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.shift <span class="op">=</span> <span class="dv">300</span></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.x0 <span class="op">=</span>  <span class="va">self</span>.cart_pendulum.cart_pos <span class="op">+</span> <span class="va">self</span>.shift</span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.y0 <span class="op">=</span> <span class="va">self</span>.shift</span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.x1 <span class="op">=</span> <span class="va">self</span>.shift</span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.y1 <span class="op">=</span> <span class="va">self</span>.shift</span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.user_applied_force <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> step(<span class="va">self</span>):</span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.cart_pendulum.step(<span class="va">self</span>.user_applied_force)</span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> draw(<span class="va">self</span>):</span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>        <span class="co">""" Draw our rectangle """</span></span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.x0 <span class="op">=</span> <span class="va">self</span>.cart_pendulum.cart_pos <span class="op">+</span> <span class="va">self</span>.shift</span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.y0 <span class="op">=</span> <span class="va">self</span>.shift</span>
-<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.x1 <span class="op">=</span> <span class="va">self</span>.cart_pendulum.cart_pos <span class="op">+</span> <span class="va">self</span>.cart_pendulum.length <span class="op">*</span> math.cos(<span class="va">self</span>.cart_pendulum.pendulum_angle) <span class="op">+</span> <span class="va">self</span>.shift</span>
-<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.y1 <span class="op">=</span> <span class="va">self</span>.cart_pendulum.length <span class="op">*</span> math.sin(<span class="va">self</span>.cart_pendulum.pendulum_angle) <span class="op">+</span> <span class="va">self</span>.shift</span>
-<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>        overflow <span class="op">=</span> (<span class="va">self</span>.x0 <span class="op">//</span> SCREEN_WIDTH) <span class="op">*</span> SCREEN_WIDTH</span>
-<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.x0 <span class="op">-=</span> overflow</span>
-<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.x1 <span class="op">-=</span> overflow</span>
-<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Draw cart</span></span>
-<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>        arcade.draw_rectangle_outline(<span class="va">self</span>.x0, <span class="va">self</span>.y0, <span class="dv">200</span>, <span class="dv">50</span>, arcade.color.BLACK)</span>
-<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Draw pendulum</span></span>
-<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>        arcade.draw_line(<span class="va">self</span>.x0, <span class="va">self</span>.y0, <span class="va">self</span>.x1, <span class="va">self</span>.y1, color<span class="op">=</span>arcade.color.RED, line_width<span class="op">=</span><span class="dv">4</span>)</span>
-<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>        arcade.draw_circle_filled(<span class="va">self</span>.x0, <span class="va">self</span>.y0, <span class="dv">10</span>, arcade.color.BLACK)</span>
-<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Draw wheels</span></span>
-<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>        wheel_distance <span class="op">=</span> <span class="dv">60</span></span>
-<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>        arcade.draw_circle_filled(<span class="va">self</span>.x0 <span class="op">-</span> wheel_distance, <span class="va">self</span>.y0 <span class="op">-</span> <span class="dv">25</span>, <span class="dv">20</span>, arcade.color.BLACK)</span>
-<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>        arcade.draw_circle_filled(<span class="va">self</span>.x0 <span class="op">+</span> wheel_distance, <span class="va">self</span>.y0 <span class="op">-</span> <span class="dv">25</span>, <span class="dv">20</span>, arcade.color.BLACK)</span>
-<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>        arcade.draw_commands.draw_arc_filled(<span class="va">self</span>.x0 <span class="op">+</span> wheel_distance, <span class="va">self</span>.y0 <span class="op">-</span> <span class="dv">25</span>, <span class="dv">19</span>, <span class="dv">19</span>, color<span class="op">=</span>[<span class="dv">255</span>, <span class="dv">255</span>, <span class="dv">255</span>],</span>
-<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>                                             start_angle<span class="op">=</span><span class="dv">0</span>,</span>
-<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a>                                             end_angle<span class="op">=</span><span class="dv">30</span>, tilt_angle<span class="op">=-</span><span class="va">self</span>.x0 <span class="op">*</span> <span class="dv">360</span> <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> np.pi <span class="op">*</span> <span class="dv">20</span>))</span>
-<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>        arcade.draw_commands.draw_arc_filled(<span class="va">self</span>.x0 <span class="op">-</span> wheel_distance, <span class="va">self</span>.y0 <span class="op">-</span> <span class="dv">25</span>, <span class="dv">19</span>, <span class="dv">19</span>, color<span class="op">=</span>[<span class="dv">255</span>, <span class="dv">255</span>, <span class="dv">255</span>],</span>
-<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a>                                             start_angle<span class="op">=</span><span class="dv">0</span>,</span>
-<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a>                                             end_angle<span class="op">=</span><span class="dv">30</span>, tilt_angle<span class="op">=-</span><span class="va">self</span>.x0 <span class="op">*</span> <span class="dv">360</span> <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> np.pi <span class="op">*</span> <span class="dv">20</span>))</span>
-<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Terrain</span></span>
-<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a>        arcade.draw_line(<span class="dv">0</span>, <span class="va">self</span>.y0 <span class="op">-</span> <span class="dv">45</span>, SCREEN_WIDTH, <span class="va">self</span>.y0 <span class="op">-</span> <span class="dv">45</span>, arcade.color.BLACK, <span class="dv">2</span>)</span>
-<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a>        <span class="kw">def</span> draw_force(center, force, y, color, thickness<span class="op">=</span><span class="dv">3</span>, multiplier<span class="op">=</span><span class="dv">3</span>):</span>
-<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> force <span class="op">&gt;=</span> <span class="dv">0</span>:</span>
-<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a>                left <span class="op">=</span> center</span>
-<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a>                right <span class="op">=</span> np.fmin(center <span class="op">+</span> force <span class="op">*</span> multiplier, SCREEN_WIDTH)</span>
-<span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span>:</span>
-<span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a>                left <span class="op">=</span> np.fmax(center <span class="op">+</span> force <span class="op">*</span> multiplier, <span class="dv">0</span>)</span>
-<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a>                right <span class="op">=</span> center</span>
-<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a>            arcade.draw_lrtb_rectangle_filled(left, right, y <span class="op">+</span> thickness, y <span class="op">-</span> thickness, color)</span>
-<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a>        draw_force(<span class="va">self</span>.x0, <span class="va">self</span>.cart_pendulum.friction_force, <span class="va">self</span>.y0, color<span class="op">=</span>arcade.color.BLUE_GREEN)</span>
-<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a>        draw_force(<span class="va">self</span>.x0, <span class="va">self</span>.user_applied_force, <span class="va">self</span>.y0 <span class="op">-</span> <span class="dv">5</span>, color<span class="op">=</span>arcade.color.YELLOW_ORANGE)</span>
-<span id="cb4-67"><a href="#cb4-67" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-68"><a href="#cb4-68" aria-hidden="true" tabindex="-1"></a>        text_y0 <span class="op">=</span> <span class="dv">5</span></span>
-<span id="cb4-69"><a href="#cb4-69" aria-hidden="true" tabindex="-1"></a>        text_y_diff <span class="op">=</span> <span class="dv">22</span></span>
-<span id="cb4-70"><a href="#cb4-70" aria-hidden="true" tabindex="-1"></a>        width <span class="op">=</span> <span class="dv">500</span></span>
-<span id="cb4-71"><a href="#cb4-71" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-72"><a href="#cb4-72" aria-hidden="true" tabindex="-1"></a>        arcade.draw_text(</span>
-<span id="cb4-73"><a href="#cb4-73" aria-hidden="true" tabindex="-1"></a>            text<span class="op">=</span><span class="st">"</span><span class="sc">{:0.2f}</span><span class="st">N Friction force"</span>.<span class="bu">format</span>(<span class="va">self</span>.cart_pendulum.friction_force),</span>
-<span id="cb4-74"><a href="#cb4-74" aria-hidden="true" tabindex="-1"></a>            start_x<span class="op">=</span>SCREEN_WIDTH <span class="op">-</span> <span class="dv">5</span>,</span>
-<span id="cb4-75"><a href="#cb4-75" aria-hidden="true" tabindex="-1"></a>            start_y<span class="op">=</span>text_y0 <span class="op">+</span> text_y_diff <span class="op">*</span> <span class="dv">1</span>,</span>
-<span id="cb4-76"><a href="#cb4-76" aria-hidden="true" tabindex="-1"></a>            color<span class="op">=</span>arcade.color.BLUE_GREEN,</span>
-<span id="cb4-77"><a href="#cb4-77" aria-hidden="true" tabindex="-1"></a>            font_size<span class="op">=</span><span class="dv">14</span>,</span>
-<span id="cb4-78"><a href="#cb4-78" aria-hidden="true" tabindex="-1"></a>            align<span class="op">=</span><span class="st">'right'</span>,</span>
-<span id="cb4-79"><a href="#cb4-79" aria-hidden="true" tabindex="-1"></a>            anchor_x<span class="op">=</span><span class="st">'right'</span>,</span>
-<span id="cb4-80"><a href="#cb4-80" aria-hidden="true" tabindex="-1"></a>            width<span class="op">=</span>width)</span>
-<span id="cb4-81"><a href="#cb4-81" aria-hidden="true" tabindex="-1"></a>        arcade.draw_text(</span>
-<span id="cb4-82"><a href="#cb4-82" aria-hidden="true" tabindex="-1"></a>            text<span class="op">=</span><span class="st">"</span><span class="sc">{:0.2f}</span><span class="st">N User applied force"</span>.<span class="bu">format</span>(<span class="va">self</span>.user_applied_force),</span>
-<span id="cb4-83"><a href="#cb4-83" aria-hidden="true" tabindex="-1"></a>            start_x<span class="op">=</span>SCREEN_WIDTH <span class="op">-</span> <span class="dv">5</span>,</span>
-<span id="cb4-84"><a href="#cb4-84" aria-hidden="true" tabindex="-1"></a>            start_y<span class="op">=</span>text_y0 <span class="op">+</span> text_y_diff <span class="op">*</span> <span class="dv">2</span>,</span>
-<span id="cb4-85"><a href="#cb4-85" aria-hidden="true" tabindex="-1"></a>            color<span class="op">=</span>arcade.color.YELLOW_ORANGE,</span>
-<span id="cb4-86"><a href="#cb4-86" aria-hidden="true" tabindex="-1"></a>            font_size<span class="op">=</span><span class="dv">14</span>,</span>
-<span id="cb4-87"><a href="#cb4-87" aria-hidden="true" tabindex="-1"></a>            align<span class="op">=</span><span class="st">'right'</span>,</span>
-<span id="cb4-88"><a href="#cb4-88" aria-hidden="true" tabindex="-1"></a>            anchor_x<span class="op">=</span><span class="st">'right'</span>,</span>
-<span id="cb4-89"><a href="#cb4-89" aria-hidden="true" tabindex="-1"></a>            width<span class="op">=</span>width)</span>
-<span id="cb4-90"><a href="#cb4-90" aria-hidden="true" tabindex="-1"></a>        arcade.draw_text(</span>
-<span id="cb4-91"><a href="#cb4-91" aria-hidden="true" tabindex="-1"></a>            text<span class="op">=</span><span class="st">"</span><span class="sc">{:0.2f}</span><span class="st">° Angle"</span>.<span class="bu">format</span>(((<span class="op">-</span><span class="va">self</span>.cart_pendulum.pendulum_angle <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> np.pi) <span class="op">-</span> <span class="dv">1</span> <span class="op">/</span> <span class="dv">4</span>) <span class="op">*</span> <span class="dv">360</span>) <span class="op">%</span> <span class="dv">360</span> <span class="op">-</span> <span class="dv">180</span>),</span>
-<span id="cb4-92"><a href="#cb4-92" aria-hidden="true" tabindex="-1"></a>            start_x<span class="op">=</span>SCREEN_WIDTH <span class="op">-</span> <span class="dv">5</span>,</span>
-<span id="cb4-93"><a href="#cb4-93" aria-hidden="true" tabindex="-1"></a>            start_y<span class="op">=</span>text_y0 <span class="op">+</span> text_y_diff <span class="op">*</span> <span class="dv">3</span>,</span>
-<span id="cb4-94"><a href="#cb4-94" aria-hidden="true" tabindex="-1"></a>            color<span class="op">=</span>arcade.color.BLACK,</span>
-<span id="cb4-95"><a href="#cb4-95" aria-hidden="true" tabindex="-1"></a>            font_size<span class="op">=</span><span class="dv">14</span>,</span>
-<span id="cb4-96"><a href="#cb4-96" aria-hidden="true" tabindex="-1"></a>            align<span class="op">=</span><span class="st">'right'</span>,</span>
-<span id="cb4-97"><a href="#cb4-97" aria-hidden="true" tabindex="-1"></a>            anchor_x<span class="op">=</span><span class="st">'right'</span>,</span>
-<span id="cb4-98"><a href="#cb4-98" aria-hidden="true" tabindex="-1"></a>            width<span class="op">=</span>width)</span>
-<span id="cb4-99"><a href="#cb4-99" aria-hidden="true" tabindex="-1"></a>        arcade.draw_text(</span>
-<span id="cb4-100"><a href="#cb4-100" aria-hidden="true" tabindex="-1"></a>            text<span class="op">=</span><span class="st">"</span><span class="sc">{:0.2f}</span><span class="st">°/s Angular speed"</span>.<span class="bu">format</span>(<span class="op">-</span><span class="va">self</span>.cart_pendulum.pendulum_speed <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> np.pi) <span class="op">*</span> <span class="dv">360</span>),</span>
-<span id="cb4-101"><a href="#cb4-101" aria-hidden="true" tabindex="-1"></a>            start_x<span class="op">=</span>SCREEN_WIDTH <span class="op">-</span> <span class="dv">5</span>,</span>
-<span id="cb4-102"><a href="#cb4-102" aria-hidden="true" tabindex="-1"></a>            start_y<span class="op">=</span>text_y0 <span class="op">+</span> text_y_diff <span class="op">*</span> <span class="dv">4</span>,</span>
-<span id="cb4-103"><a href="#cb4-103" aria-hidden="true" tabindex="-1"></a>            color<span class="op">=</span>arcade.color.BLACK,</span>
-<span id="cb4-104"><a href="#cb4-104" aria-hidden="true" tabindex="-1"></a>            font_size<span class="op">=</span><span class="dv">14</span>,</span>
-<span id="cb4-105"><a href="#cb4-105" aria-hidden="true" tabindex="-1"></a>            align<span class="op">=</span><span class="st">'right'</span>,</span>
-<span id="cb4-106"><a href="#cb4-106" aria-hidden="true" tabindex="-1"></a>            anchor_x<span class="op">=</span><span class="st">'right'</span>,</span>
-<span id="cb4-107"><a href="#cb4-107" aria-hidden="true" tabindex="-1"></a>            width<span class="op">=</span>width)</span>
-<span id="cb4-108"><a href="#cb4-108" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-109"><a href="#cb4-109" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-110"><a href="#cb4-110" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-111"><a href="#cb4-111" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Application(arcade.Window):</span>
-<span id="cb4-112"><a href="#cb4-112" aria-hidden="true" tabindex="-1"></a>    <span class="co">""" Main application class. """</span></span>
-<span id="cb4-113"><a href="#cb4-113" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-114"><a href="#cb4-114" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, width, height):</span>
-<span id="cb4-115"><a href="#cb4-115" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>(width, height, title<span class="op">=</span><span class="st">"Pendulum On Cart"</span>)</span>
-<span id="cb4-116"><a href="#cb4-116" aria-hidden="true" tabindex="-1"></a>        arcade.set_background_color(arcade.color.WHITE)</span>
-<span id="cb4-117"><a href="#cb4-117" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.simulation <span class="op">=</span> <span class="va">None</span></span>
-<span id="cb4-118"><a href="#cb4-118" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-119"><a href="#cb4-119" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> setup(<span class="va">self</span>):</span>
-<span id="cb4-120"><a href="#cb4-120" aria-hidden="true" tabindex="-1"></a>        <span class="co">""" Set up the game and initialize the variables. """</span></span>
-<span id="cb4-121"><a href="#cb4-121" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.set_update_rate(<span class="fl">1.</span> <span class="op">/</span> <span class="dv">160</span>)  <span class="co"># set fps</span></span>
-<span id="cb4-122"><a href="#cb4-122" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.simulation <span class="op">=</span> Simulation()</span>
-<span id="cb4-123"><a href="#cb4-123" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-124"><a href="#cb4-124" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> update(<span class="va">self</span>, dt):</span>
-<span id="cb4-125"><a href="#cb4-125" aria-hidden="true" tabindex="-1"></a>        <span class="co">""" Move everything """</span></span>
-<span id="cb4-126"><a href="#cb4-126" aria-hidden="true" tabindex="-1"></a>        <span class="co"># print(1/dt)</span></span>
-<span id="cb4-127"><a href="#cb4-127" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.simulation.step()</span>
-<span id="cb4-128"><a href="#cb4-128" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-129"><a href="#cb4-129" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-130"><a href="#cb4-130" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> on_draw(<span class="va">self</span>):</span>
-<span id="cb4-131"><a href="#cb4-131" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""</span></span>
-<span id="cb4-132"><a href="#cb4-132" aria-hidden="true" tabindex="-1"></a><span class="co">        Render the screen.</span></span>
-<span id="cb4-133"><a href="#cb4-133" aria-hidden="true" tabindex="-1"></a><span class="co">        """</span></span>
-<span id="cb4-134"><a href="#cb4-134" aria-hidden="true" tabindex="-1"></a>        arcade.start_render()</span>
-<span id="cb4-135"><a href="#cb4-135" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.simulation.draw()</span>
-<span id="cb4-136"><a href="#cb4-136" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-137"><a href="#cb4-137" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> on_key_press(<span class="va">self</span>, key, modifiers):</span>
-<span id="cb4-138"><a href="#cb4-138" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Called whenever a key is pressed. """</span></span>
-<span id="cb4-139"><a href="#cb4-139" aria-hidden="true" tabindex="-1"></a>        force <span class="op">=</span> <span class="fl">10.</span></span>
-<span id="cb4-140"><a href="#cb4-140" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> key <span class="op">==</span> arcade.key.LEFT:</span>
-<span id="cb4-141"><a href="#cb4-141" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.simulation.user_applied_force <span class="op">=</span> <span class="op">-</span>force</span>
-<span id="cb4-142"><a href="#cb4-142" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> key <span class="op">==</span> arcade.key.RIGHT:</span>
-<span id="cb4-143"><a href="#cb4-143" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.simulation.user_applied_force <span class="op">=</span> force</span>
-<span id="cb4-144"><a href="#cb4-144" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> key <span class="op">==</span> arcade.key.SPACE:</span>
-<span id="cb4-145"><a href="#cb4-145" aria-hidden="true" tabindex="-1"></a>            arcade.window_commands.pause(<span class="fl">0.1</span>)</span>
-<span id="cb4-146"><a href="#cb4-146" aria-hidden="true" tabindex="-1"></a>            image <span class="op">=</span> arcade.draw_commands.get_image()</span>
-<span id="cb4-147"><a href="#cb4-147" aria-hidden="true" tabindex="-1"></a>            image.save(<span class="st">'screenshot.png'</span>, <span class="st">'PNG'</span>)</span>
-<span id="cb4-148"><a href="#cb4-148" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-149"><a href="#cb4-149" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> on_key_release(<span class="va">self</span>, key, modifiers):</span>
-<span id="cb4-150"><a href="#cb4-150" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Called whenever a key is pressed. """</span></span>
-<span id="cb4-151"><a href="#cb4-151" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> key <span class="op">==</span> arcade.key.LEFT:</span>
-<span id="cb4-152"><a href="#cb4-152" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.simulation.user_applied_force <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb4-153"><a href="#cb4-153" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-154"><a href="#cb4-154" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> key <span class="op">==</span> arcade.key.RIGHT:</span>
-<span id="cb4-155"><a href="#cb4-155" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.simulation.user_applied_force <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb4-156"><a href="#cb4-156" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-157"><a href="#cb4-157" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-158"><a href="#cb4-158" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> on_close(<span class="va">self</span>):</span>
-<span id="cb4-159"><a href="#cb4-159" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().on_close()</span>
-<span id="cb4-160"><a href="#cb4-160" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-161"><a href="#cb4-161" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-162"><a href="#cb4-162" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">"__main__"</span>:</span>
-<span id="cb4-163"><a href="#cb4-163" aria-hidden="true" tabindex="-1"></a>    window <span class="op">=</span> Application(SCREEN_WIDTH, SCREEN_HEIGHT)</span>
-<span id="cb4-164"><a href="#cb4-164" aria-hidden="true" tabindex="-1"></a>    window.setup()</span>
-<span id="cb4-165"><a href="#cb4-165" aria-hidden="true" tabindex="-1"></a>    arcade.run()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode bibtex code-with-copy"><code class="sourceCode bibtex"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="va">@misc</span>{<span class="ot">englert2023physicscartpole</span>,</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">title</span>   = {2D Physics of the Inverted Pendulum on a Cart},</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">author</span>  = {Englert, Brunó B.},</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">journal</span> = {englert.ai},</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">year</span>    = {2023},</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">month</span>   = {July},</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">url</span>     = {https://englert.ai/posts/001_inverted_pendulum/englert_ai_1_cart_physics.html}</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="source-code" class="level2">
+<h2 class="anchored" data-anchor-id="source-code">Source code</h2>
+<p>To run the <a href="#simulation-code">Python examples</a>, set up an environment with <a href="https://docs.python.org/3/library/venv.html">venv</a> or <a href="https://www.anaconda.com/docs/getting-started/miniconda/install">Miniconda</a>. Install the required packages with</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> <span class="at">-m</span> pip install numpy arcade</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li><a href="pendulum_demo.js">Browser simulation</a> — the interactive version above.</li>
+<li><a href="arcade_simulation.py">Python/Arcade simulation</a> — the interactive desktop version.</li>
+</ul>
 
 
 </section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
-window.document.addEventListener("DOMContentLoaded", function (event) {
-  const toggleBodyColorMode = (bsSheetEl) => {
-    const mode = bsSheetEl.getAttribute("data-mode");
-    const bodyEl = window.document.querySelector("body");
-    if (mode === "dark") {
-      bodyEl.classList.add("quarto-dark");
-      bodyEl.classList.remove("quarto-light");
-    } else {
-      bodyEl.classList.add("quarto-light");
-      bodyEl.classList.remove("quarto-dark");
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
     }
-  }
-  const toggleBodyColorPrimary = () => {
-    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
-    if (bsSheetEl) {
-      toggleBodyColorMode(bsSheetEl);
-    }
-  }
-  toggleBodyColorPrimary();  
-  const disableStylesheet = (stylesheets) => {
-    for (let i=0; i < stylesheets.length; i++) {
-      const stylesheet = stylesheets[i];
-      stylesheet.rel = 'prefetch';
-    }
-  }
-  const enableStylesheet = (stylesheets) => {
-    for (let i=0; i < stylesheets.length; i++) {
-      const stylesheet = stylesheets[i];
-      stylesheet.rel = 'stylesheet';
-    }
-  }
-  const manageTransitions = (selector, allowTransitions) => {
-    const els = window.document.querySelectorAll(selector);
-    for (let i=0; i < els.length; i++) {
-      const el = els[i];
-      if (allowTransitions) {
-        el.classList.remove('notransition');
-      } else {
-        el.classList.add('notransition');
-      }
-    }
-  }
-  const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
-    const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
-    const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
-    let newTheme = '';
-    if(darkModeDefault) {
-      newTheme = isAlternate ? baseTheme : alternateTheme;
-    } else {
-      newTheme = isAlternate ? alternateTheme : baseTheme;
-    }
-    const changeGiscusTheme = () => {
-      // From: https://github.com/giscus/giscus/issues/336
-      const sendMessage = (message) => {
-        const iframe = document.querySelector('iframe.giscus-frame');
-        if (!iframe) return;
-        iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
-      }
-      sendMessage({
-        setConfig: {
-          theme: newTheme
-        }
-      });
-    }
-    const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
-    if (isGiscussLoaded) {
-      changeGiscusTheme();
-    }
-  }
-  const toggleColorMode = (alternate) => {
-    // Switch the stylesheets
-    const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
-    manageTransitions('#quarto-margin-sidebar .nav-link', false);
-    if (alternate) {
-      enableStylesheet(alternateStylesheets);
-      for (const sheetNode of alternateStylesheets) {
-        if (sheetNode.id === "quarto-bootstrap") {
-          toggleBodyColorMode(sheetNode);
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
         }
       }
-    } else {
-      disableStylesheet(alternateStylesheets);
-      toggleBodyColorPrimary();
-    }
-    manageTransitions('#quarto-margin-sidebar .nav-link', true);
-    // Switch the toggles
-    const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
-    for (let i=0; i < toggles.length; i++) {
-      const toggle = toggles[i];
-      if (toggle) {
-        if (alternate) {
-          toggle.classList.add("alternate");     
-        } else {
-          toggle.classList.remove("alternate");
-        }
-      }
-    }
-    // Hack to workaround the fact that safari doesn't
-    // properly recolor the scrollbar when toggling (#1455)
-    if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
-      manageTransitions("body", false);
-      window.scrollTo(0, 1);
-      setTimeout(() => {
-        window.scrollTo(0, 0);
-        manageTransitions("body", true);
-      }, 40);  
-    }
-  }
-  const isFileUrl = () => { 
-    return window.location.protocol === 'file:';
-  }
-  const hasAlternateSentinel = () => {  
-    let styleSentinel = getColorSchemeSentinel();
-    if (styleSentinel !== null) {
-      return styleSentinel === "alternate";
-    } else {
       return false;
     }
-  }
-  const setStyleSentinel = (alternate) => {
-    const value = alternate ? "alternate" : "default";
-    if (!isFileUrl()) {
-      window.localStorage.setItem("quarto-color-scheme", value);
-    } else {
-      localAlternateSentinel = value;
-    }
-  }
-  const getColorSchemeSentinel = () => {
-    if (!isFileUrl()) {
-      const storageValue = window.localStorage.getItem("quarto-color-scheme");
-      return storageValue != null ? storageValue : localAlternateSentinel;
-    } else {
-      return localAlternateSentinel;
-    }
-  }
-  const darkModeDefault = false;
-  let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
-  // Dark / light mode switch
-  window.quartoToggleColorScheme = () => {
-    // Read the current dark / light value 
-    let toAlternate = !hasAlternateSentinel();
-    toggleColorMode(toAlternate);
-    setStyleSentinel(toAlternate);
-    toggleGiscusIfUsed(toAlternate, darkModeDefault);
-  };
-  // Ensure there is a toggle, if there isn't float one in the top right
-  if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
-    const a = window.document.createElement('a');
-    a.classList.add('top-right');
-    a.classList.add('quarto-color-scheme-toggle');
-    a.href = "";
-    a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
-    const i = window.document.createElement("i");
-    i.classList.add('bi');
-    a.appendChild(i);
-    window.document.body.appendChild(a);
-  }
-  // Switch to dark mode if need be
-  if (hasAlternateSentinel()) {
-    toggleColorMode(true);
-  } else {
-    toggleColorMode(false);
-  }
-  const icon = "";
-  const anchorJS = new window.AnchorJS();
-  anchorJS.options = {
-    placement: 'right',
-    icon: icon
-  };
-  anchorJS.add('.anchored');
-  const isCodeAnnotation = (el) => {
-    for (const clz of el.classList) {
-      if (clz.startsWith('code-annotation-')) {                     
-        return true;
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
       }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
     }
-    return false;
-  }
-  const onCopySuccess = function(e) {
-    // button target
-    const button = e.trigger;
-    // don't keep focus
-    button.blur();
-    // flash "checked"
-    button.classList.add('code-copy-button-checked');
-    var currentTitle = button.getAttribute("title");
-    button.setAttribute("title", "Copied!");
-    let tooltip;
-    if (window.bootstrap) {
-      button.setAttribute("data-bs-toggle", "tooltip");
-      button.setAttribute("data-bs-placement", "left");
-      button.setAttribute("data-bs-title", "Copied!");
-      tooltip = new bootstrap.Tooltip(button, 
-        { trigger: "manual", 
-          customClass: "code-copy-button-tooltip",
-          offset: [0, -8]});
-      tooltip.show();    
-    }
-    setTimeout(function() {
-      if (tooltip) {
-        tooltip.hide();
-        button.removeAttribute("data-bs-title");
-        button.removeAttribute("data-bs-toggle");
-        button.removeAttribute("data-bs-placement");
-      }
-      button.setAttribute("title", currentTitle);
-      button.classList.remove('code-copy-button-checked');
-    }, 1000);
-    // clear code selection
-    e.clearSelection();
-  }
-  const getTextToCopy = function(trigger) {
-      const codeEl = trigger.previousElementSibling.cloneNode(true);
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
       for (const childEl of codeEl.children) {
         if (isCodeAnnotation(childEl)) {
           childEl.remove();
         }
       }
       return codeEl.innerText;
-  }
-  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
-    text: getTextToCopy
-  });
-  clipboard.on('success', onCopySuccess);
-  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
-    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
-      text: getTextToCopy,
-      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
     });
-    clipboardModal.on('success', onCopySuccess);
-  }
-    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
-    var mailtoRegex = new RegExp(/^mailto:/);
-      var filterRegex = new RegExp("https:\/\/www\.englert\.ai");
-    var isInternal = (href) => {
-        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
     }
-    // Inspect non-navigation links and adorn them if external
- 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
-    for (var i=0; i<links.length; i++) {
-      const link = links[i];
-      if (!isInternal(link.href)) {
-        // undo the damage that might have been done by quarto-nav.js in the case of
-        // links that we want to consider external
-        if (link.dataset.originalHref !== undefined) {
-          link.href = link.dataset.originalHref;
-        }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/www\.englert\.ai");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
-    }
-  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
-    const config = {
-      allowHTML: true,
-      maxWidth: 500,
-      delay: 100,
-      arrow: false,
-      appendTo: function(el) {
-          return el.parentElement;
-      },
-      interactive: true,
-      interactiveBorder: 10,
-      theme: 'quarto',
-      placement: 'bottom-start',
-    };
-    if (contentFn) {
-      config.content = contentFn;
-    }
-    if (onTriggerFn) {
-      config.onTrigger = onTriggerFn;
-    }
-    if (onUntriggerFn) {
-      config.onUntrigger = onUntriggerFn;
-    }
-    window.tippy(el, config); 
-  }
-  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
-  for (var i=0; i<noterefs.length; i++) {
-    const ref = noterefs[i];
-    tippyHover(ref, function() {
-      // use id or data attribute instead here
-      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
-      try { href = new URL(href).hash; } catch {}
-      const id = href.replace(/^#\/?/, "");
-      const note = window.document.getElementById(id);
-      if (note) {
-        return note.innerHTML;
-      } else {
-        return "";
-      }
-    });
-  }
-  const xrefs = window.document.querySelectorAll('a.quarto-xref');
-  const processXRef = (id, note) => {
-    // Strip column container classes
-    const stripColumnClz = (el) => {
-      el.classList.remove("page-full", "page-columns");
-      if (el.children) {
-        for (const child of el.children) {
-          stripColumnClz(child);
-        }
-      }
-    }
-    stripColumnClz(note)
-    if (id === null || id.startsWith('sec-')) {
-      // Special case sections, only their first couple elements
-      const container = document.createElement("div");
-      if (note.children && note.children.length > 2) {
-        container.appendChild(note.children[0].cloneNode(true));
-        for (let i = 1; i < note.children.length; i++) {
-          const child = note.children[i];
-          if (child.tagName === "P" && child.innerText === "") {
-            continue;
-          } else {
-            container.appendChild(child.cloneNode(true));
-            break;
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
           }
         }
-        if (window.Quarto?.typesetMath) {
-          window.Quarto.typesetMath(container);
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
         }
-        return container.innerHTML
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
       } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
         if (window.Quarto?.typesetMath) {
           window.Quarto.typesetMath(note);
         }
-        return note.innerHTML;
-      }
-    } else {
-      // Remove any anchor links if they are present
-      const anchorLink = note.querySelector('a.anchorjs-link');
-      if (anchorLink) {
-        anchorLink.remove();
-      }
-      if (window.Quarto?.typesetMath) {
-        window.Quarto.typesetMath(note);
-      }
-      if (note.classList.contains("callout")) {
-        return note.outerHTML;
-      } else {
-        return note.innerHTML;
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
       }
     }
-  }
-  for (var i=0; i<xrefs.length; i++) {
-    const xref = xrefs[i];
-    tippyHover(xref, undefined, function(instance) {
-      instance.disable();
-      let url = xref.getAttribute('href');
-      let hash = undefined; 
-      if (url.startsWith('#')) {
-        hash = url;
-      } else {
-        try { hash = new URL(url).hash; } catch {}
-      }
-      if (hash) {
-        const id = hash.replace(/^#\/?/, "");
-        const note = window.document.getElementById(id);
-        if (note !== null) {
-          try {
-            const html = processXRef(id, note.cloneNode(true));
-            instance.setContent(html);
-          } finally {
-            instance.enable();
-            instance.show();
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
           }
         } else {
-          // See if we can fetch this
-          fetch(url.split('#')[0])
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
           .then(res => res.text())
           .then(html => {
             const parser = new DOMParser();
             const htmlDoc = parser.parseFromString(html, "text/html");
-            const note = htmlDoc.getElementById(id);
+            const note = htmlDoc.querySelector('main.content');
             if (note !== null) {
-              const html = processXRef(id, note);
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
               instance.setContent(html);
             } 
           }).finally(() => {
@@ -1002,185 +1038,161 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
             instance.show();
           });
         }
-      } else {
-        // See if we can fetch a full url (with no hash to target)
-        // This is a special case and we should probably do some content thinning / targeting
-        fetch(url)
-        .then(res => res.text())
-        .then(html => {
-          const parser = new DOMParser();
-          const htmlDoc = parser.parseFromString(html, "text/html");
-          const note = htmlDoc.querySelector('main.content');
-          if (note !== null) {
-            // This should only happen for chapter cross references
-            // (since there is no id in the URL)
-            // remove the first header
-            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
-              note.children[0].remove();
-            }
-            const html = processXRef(null, note);
-            instance.setContent(html);
-          } 
-        }).finally(() => {
-          instance.enable();
-          instance.show();
-        });
-      }
-    }, function(instance) {
-    });
-  }
-      let selectedAnnoteEl;
-      const selectorForAnnotation = ( cell, annotation) => {
-        let cellAttr = 'data-code-cell="' + cell + '"';
-        let lineAttr = 'data-code-annotation="' +  annotation + '"';
-        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
-        return selector;
-      }
-      const selectCodeLines = (annoteEl) => {
-        const doc = window.document;
-        const targetCell = annoteEl.getAttribute("data-target-cell");
-        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
-        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
-        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
-        const lineIds = lines.map((line) => {
-          return targetCell + "-" + line;
-        })
-        let top = null;
-        let height = null;
-        let parent = null;
-        if (lineIds.length > 0) {
-            //compute the position of the single el (top and bottom and make a div)
-            const el = window.document.getElementById(lineIds[0]);
-            top = el.offsetTop;
-            height = el.offsetHeight;
-            parent = el.parentElement.parentElement;
-          if (lineIds.length > 1) {
-            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
-            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
-            height = bottom - top;
-          }
-          if (top !== null && height !== null && parent !== null) {
-            // cook up a div (if necessary) and position it 
-            let div = window.document.getElementById("code-annotation-line-highlight");
-            if (div === null) {
-              div = window.document.createElement("div");
-              div.setAttribute("id", "code-annotation-line-highlight");
-              div.style.position = 'absolute';
-              parent.appendChild(div);
-            }
-            div.style.top = top - 2 + "px";
-            div.style.height = height + 4 + "px";
-            div.style.left = 0;
-            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
-            if (gutterDiv === null) {
-              gutterDiv = window.document.createElement("div");
-              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
-              gutterDiv.style.position = 'absolute';
-              const codeCell = window.document.getElementById(targetCell);
-              const gutter = codeCell.querySelector('.code-annotation-gutter');
-              gutter.appendChild(gutterDiv);
-            }
-            gutterDiv.style.top = top - 2 + "px";
-            gutterDiv.style.height = height + 4 + "px";
-          }
-          selectedAnnoteEl = annoteEl;
-        }
-      };
-      const unselectCodeLines = () => {
-        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
-        elementsIds.forEach((elId) => {
-          const div = window.document.getElementById(elId);
-          if (div) {
-            div.remove();
-          }
-        });
-        selectedAnnoteEl = undefined;
-      };
-        // Handle positioning of the toggle
-    window.addEventListener(
-      "resize",
-      throttle(() => {
-        elRect = undefined;
-        if (selectedAnnoteEl) {
-          selectCodeLines(selectedAnnoteEl);
-        }
-      }, 10)
-    );
-    function throttle(fn, ms) {
-    let throttle = false;
-    let timer;
-      return (...args) => {
-        if(!throttle) { // first call gets through
-            fn.apply(this, args);
-            throttle = true;
-        } else { // all the others get throttled
-            if(timer) clearTimeout(timer); // cancel #2
-            timer = setTimeout(() => {
-              fn.apply(this, args);
-              timer = throttle = false;
-            }, ms);
-        }
-      };
-    }
-      // Attach click handler to the DT
-      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
-      for (const annoteDlNode of annoteDls) {
-        annoteDlNode.addEventListener('click', (event) => {
-          const clickedEl = event.target;
-          if (clickedEl !== selectedAnnoteEl) {
-            unselectCodeLines();
-            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
-            if (activeEl) {
-              activeEl.classList.remove('code-annotation-active');
-            }
-            selectCodeLines(clickedEl);
-            clickedEl.classList.add('code-annotation-active');
-          } else {
-            // Unselect the line
-            unselectCodeLines();
-            clickedEl.classList.remove('code-annotation-active');
-          }
-        });
-      }
-  const findCites = (el) => {
-    const parentEl = el.parentElement;
-    if (parentEl) {
-      const cites = parentEl.dataset.cites;
-      if (cites) {
-        return {
-          el,
-          cites: cites.split(' ')
-        };
-      } else {
-        return findCites(el.parentElement)
-      }
-    } else {
-      return undefined;
-    }
-  };
-  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
-  for (var i=0; i<bibliorefs.length; i++) {
-    const ref = bibliorefs[i];
-    const citeInfo = findCites(ref);
-    if (citeInfo) {
-      tippyHover(citeInfo.el, function() {
-        var popup = window.document.createElement('div');
-        citeInfo.cites.forEach(function(cite) {
-          var citeDiv = window.document.createElement('div');
-          citeDiv.classList.add('hanging-indent');
-          citeDiv.classList.add('csl-entry');
-          var biblioDiv = window.document.getElementById('ref-' + cite);
-          if (biblioDiv) {
-            citeDiv.innerHTML = biblioDiv.innerHTML;
-          }
-          popup.appendChild(citeDiv);
-        });
-        return popup.innerHTML;
+      }, function(instance) {
       });
     }
-  }
-});
-</script>
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
 </div> <!-- /content -->
 <footer class="footer">
   <div class="nav-footer">
@@ -1188,13 +1200,45 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       &nbsp;
     </div>   
     <div class="nav-footer-center">
-<p>© 2025, englert.ai</p>
+<p>© 2026, Bruno Englert</p>
 </div>
     <div class="nav-footer-right">
       &nbsp;
     </div>
   </div>
 </footer>
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 

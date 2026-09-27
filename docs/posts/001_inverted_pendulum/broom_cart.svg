@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="450" viewBox="0 0 900 450" role="img" aria-labelledby="title desc">
+  <title id="title">Balancing a broom and balancing a rod on a cart</title>
+  <desc id="desc">An upside-down broom with fanned bristles balances on an index fingertip. Beside it, a rod with the same rightward lean balances on a small wheeled cart. Curved arrows suggest moving both supports to the right.</desc>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --ink: #25384a;
+      --line: #52677b;
+      --muted: #66788a;
+      --divider: #94a3b8;
+      --blue: #1763a6;
+      --orange: #ad4715;
+      --purple: #79509b;
+      --wash: rgba(23, 99, 166, 0.07);
+      --cart: rgba(23, 99, 166, 0.12);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink: #e2e8f0;
+        --line: #b1c2d1;
+        --muted: #859bb0;
+        --divider: #52677b;
+        --blue: #75baff;
+        --orange: #f4a66a;
+        --purple: #c9a3e6;
+        --wash: rgba(117, 186, 255, 0.07);
+        --cart: rgba(117, 186, 255, 0.12);
+      }
+    }
+  </style>
+<defs><marker id="ink" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse"><path d="M0 0L7 3.5L0 7Z" fill="var(--ink)"/></marker><marker id="line" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse"><path d="M0 0L7 3.5L0 7Z" fill="var(--line)"/></marker><marker id="blue" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse"><path d="M0 0L7 3.5L0 7Z" fill="var(--blue)"/></marker><marker id="orange" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse"><path d="M0 0L7 3.5L0 7Z" fill="var(--orange)"/></marker><marker id="purple" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse"><path d="M0 0L7 3.5L0 7Z" fill="var(--purple)"/></marker></defs>
+<g font-family="DejaVu Serif, serif" font-size="24" fill="var(--ink)" stroke-linecap="round" stroke-linejoin="round">
+<!-- The broom and rod share a tilt; the introduction needs no coordinate axes. -->
+<g transform="translate(210 284) rotate(19)">
+  <path d="M0 0V-172" stroke="var(--orange)" stroke-width="10"/>
+  <path d="M-2 -3V-170" stroke="var(--orange)" stroke-width="2" opacity="0.45"/>
+  <!-- Bristles fan out from the bound end of an upside-down broom. -->
+  <path d="M-14 -173L-44 -233Q-22 -239 0 -235Q24 -240 45 -232L14 -173Z" fill="var(--cart)" stroke="var(--orange)" stroke-width="3"/>
+  <path d="M-10 -181L-33 -230 M-6 -183L-21 -229 M-2 -182L-8 -231 M3 -183L6 -229 M7 -181L20 -230 M10 -180L34 -229" fill="none" stroke="var(--orange)" stroke-width="2"/>
+  <path d="M-16 -179H16 M-19 -186H19" fill="none" stroke="var(--orange)" stroke-width="4"/>
+</g>
+<!-- A raised index finger, with the remaining fingers folded toward the palm. -->
+<path d="M193 390L192 382C181 378 172 370 171 359C169 351 173 344 181 344C187 344 192 348 196 352V301C196 291 201 284 210 284C219 284 225 291 225 301V328C229 321 240 320 247 326C251 330 252 335 252 341C259 334 269 338 274 345C277 349 278 353 278 358C284 354 292 358 293 365C294 377 286 386 274 390Z" fill="var(--cart)" stroke="var(--line)" stroke-width="3"/>
+<!-- Rounded fingertips curl into the palm behind the thumb. -->
+<path d="M225 328V348C225 356 230 360 236 358C240 357 243 354 244 349 M252 341L251 357C251 363 256 366 261 363C265 361 267 358 267 354 M278 358L276 367C276 372 280 374 284 370" fill="none" stroke="var(--line)" stroke-width="2"/>
+<!-- The thumb crosses the palm instead of pointing up beside the index finger. -->
+<path d="M180 351C188 351 196 358 205 361C212 364 219 362 220 357C221 352 217 349 212 347L199 341" fill="none" stroke="var(--line)" stroke-width="2"/>
+<path d="M193 390H274L272 405H195Z" fill="var(--cart)" stroke="var(--line)" stroke-width="2.5"/>
+<circle cx="210" cy="284" r="4" fill="var(--orange)"/>
+<!-- A wheeled cart with a hinged rod, drawn with the same visual weight. -->
+<path d="M660 284L735.5 64.8" stroke="var(--orange)" stroke-width="10"/>
+<rect x="586" y="284" width="148" height="52" rx="12" fill="var(--cart)" stroke="var(--line)" stroke-width="3"/>
+<path d="M605 300H644" stroke="var(--line)" stroke-width="2" opacity="0.6"/>
+<circle cx="660" cy="284" r="7" fill="var(--blue)"/>
+<circle cx="616" cy="355" r="17" fill="var(--cart)" stroke="var(--line)" stroke-width="4"/>
+<circle cx="704" cy="355" r="17" fill="var(--cart)" stroke="var(--line)" stroke-width="4"/>
+<circle cx="616" cy="355" r="5" fill="var(--line)"/>
+<circle cx="704" cy="355" r="5" fill="var(--line)"/>
+<path d="M528 376H791" stroke="var(--muted)" stroke-width="2"/>
+<!-- A hint of the rightward catch, without technical labels. -->
+<path d="M295 345C320 339 330 339 356 339" fill="none" stroke="var(--blue)" stroke-width="3" marker-end="url(#blue)"/>
+<path d="M748 330C775 322 789 322 817 322" fill="none" stroke="var(--blue)" stroke-width="3" marker-end="url(#blue)"/>
+<text x="220" y="434" text-anchor="middle" font-size="25">Broom + finger</text>
+<text x="666" y="434" text-anchor="middle" font-size="25">Rod + cart</text>
+</g>
+</svg>

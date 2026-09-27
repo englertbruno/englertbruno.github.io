@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="625" viewBox="0 0 900 625" role="img" aria-labelledby="title desc">
+<title id="title">Geometry and forces of the cart and pendulum</title>
+<desc id="desc">The rod remains attached to the cart. Its midpoint is the center of mass, with a dashed position triangle of width l sine theta and height l cosine theta. Theta is measured clockwise from upright and x rightward from a fixed zero. Forces N and P act on the rod at the pivot and mg acts at its midpoint. Callouts identify mg as gravity, F as the force applied by the user, and minus b x dot as friction. The cart also feels the opposite horizontal force minus N. The rod force N and cart force minus N have equal arrow lengths. Friction is drawn for positive cart velocity. Cart vertical forces are omitted.</desc>
+<style>
+    :root {
+      color-scheme: light dark;
+      --ink: #25384a;
+      --line: #52677b;
+      --muted: #66788a;
+      --divider: #94a3b8;
+      --blue: #1763a6;
+      --orange: #ad4715;
+      --purple: #79509b;
+      --wash: rgba(23, 99, 166, 0.07);
+      --cart: rgba(23, 99, 166, 0.12);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink: #e2e8f0;
+        --line: #b1c2d1;
+        --muted: #859bb0;
+        --divider: #52677b;
+        --blue: #75baff;
+        --orange: #f4a66a;
+        --purple: #c9a3e6;
+        --wash: rgba(117, 186, 255, 0.07);
+        --cart: rgba(117, 186, 255, 0.12);
+      }
+    }
+  </style>
+<defs><marker id="ink" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse"><path d="M0 0L7 3.5L0 7Z" fill="var(--ink)"/></marker><marker id="line" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse"><path d="M0 0L7 3.5L0 7Z" fill="var(--line)"/></marker><marker id="blue" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse"><path d="M0 0L7 3.5L0 7Z" fill="var(--blue)"/></marker><marker id="orange" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse"><path d="M0 0L7 3.5L0 7Z" fill="var(--orange)"/></marker><marker id="purple" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse"><path d="M0 0L7 3.5L0 7Z" fill="var(--purple)"/></marker></defs>
+<g font-family="DejaVu Serif, serif" font-size="24" fill="var(--ink)" stroke-linecap="round" stroke-linejoin="round">
+<!-- Every geometric mark and force belongs to this one assembled system. -->
+<path d="M360 385V90" stroke="var(--muted)" stroke-width="2" stroke-dasharray="6 6"/>
+<text x="322" y="67" font-size="22">upright</text>
+<!-- The position triangle reaches from the pivot to the rod midpoint. -->
+<path d="M360 385V217H450Z" fill="var(--wash)"/>
+<path d="M360 385V217H450" fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="6 5"/>
+<path d="M360 235H378V217" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+<text x="370" y="198" font-size="22">ℓ sin θ</text>
+<text x="245" y="314" font-size="22">ℓ cos θ</text>
+<!-- The center of mass is exactly halfway along the uniform rod. -->
+<path id="rod" d="M360 385L540 49" stroke="var(--line)" stroke-width="11"/>
+<text x="573" y="76" font-size="22">rod mass m</text>
+<text x="573" y="106" font-size="22">length L</text>
+<path d="M360 385V412" stroke="var(--line)" stroke-width="3"/>
+<rect x="255" y="412" width="210" height="70" rx="6" fill="var(--cart)" stroke="var(--line)" stroke-width="3"/>
+<text x="347" y="456">M</text>
+<circle cx="294" cy="503" r="16" fill="var(--line)"/>
+<circle cx="426" cy="503" r="16" fill="var(--line)"/>
+<path d="M68 521H811" stroke="var(--muted)" stroke-width="2"/>
+<!-- Equal and opposite horizontal forces share the pivot, but act on different objects. -->
+<path id="rod-N" d="M360 385H530" stroke="var(--blue)" stroke-width="3" marker-end="url(#blue)"/>
+<text x="448" y="362" fill="var(--blue)">N</text>
+<text x="478" y="362" fill="var(--blue)" font-size="19">on rod</text>
+<path id="cart-N" d="M360 385H190" stroke="var(--orange)" stroke-width="3" marker-end="url(#orange)"/>
+<text x="202" y="362" fill="var(--orange)">−N</text>
+<text x="247" y="362" fill="var(--orange)" font-size="19">on cart</text>
+<path id="rod-P" d="M360 385V270" stroke="var(--blue)" stroke-width="3" marker-end="url(#blue)"/>
+<text x="327" y="281" fill="var(--blue)">P</text>
+<path id="gravity" d="M450 217V330" stroke="var(--blue)" stroke-width="3" marker-end="url(#blue)"/>
+<text x="469" y="310" fill="var(--blue)">mg</text>
+<path d="M100 447H255" stroke="var(--orange)" stroke-width="3" marker-end="url(#orange)"/>
+<text x="164" y="425" fill="var(--orange)">F</text>
+<path d="M615 459H465" stroke="var(--orange)" stroke-width="3" marker-end="url(#orange)"/>
+<text x="523" y="436" fill="var(--orange)">−bẋ</text>
+<!-- Callouts explain the force symbols without adding more force arrows. -->
+<path d="M162 402L144 376" fill="none" stroke="var(--line)" stroke-width="1.5"/>
+<text x="27" y="338" font-size="22">applied force</text>
+<text x="27" y="366" font-size="22">from the user</text>
+<path d="M511 305L555 293H585" fill="none" stroke="var(--line)" stroke-width="1.5"/>
+<text x="599" y="300" font-size="22">gravity</text>
+<path d="M577 426L633 406H671" fill="none" stroke="var(--line)" stroke-width="1.5"/>
+<text x="685" y="413" font-size="22">friction</text>
+<path d="M360.00 305.00A80 80 0 0 1 397.78 314.48" fill="none" stroke="var(--ink)" stroke-width="2" marker-end="url(#ink)"/>
+<text x="382" y="292">θ</text>
+<circle id="center" cx="450" cy="217" r="7" fill="var(--blue)"/>
+<circle id="pivot" cx="360" cy="385" r="5" fill="var(--ink)"/>
+<path d="M458 214L555 181H585" fill="none" stroke="var(--line)" stroke-width="1.5"/>
+<text x="599" y="184" font-size="22">center of mass</text>
+<text x="599" y="215" font-size="22">(x<tspan baseline-shift="sub" font-size="15">c</tspan>, y<tspan baseline-shift="sub" font-size="15">c</tspan>)</text>
+<text x="599" y="248" font-size="22">ℓ = L / 2 from the pivot</text>
+<!-- x is a position measured from a fixed point on the track. -->
+<path d="M100 534V574 M360 527V574" stroke="var(--muted)" stroke-width="2" stroke-dasharray="4 4"/>
+<path d="M100 558H357" stroke="var(--ink)" stroke-width="2" marker-end="url(#ink)"/>
+<text x="225" y="548">x</text>
+<text x="92" y="603">0</text>
+<text x="315" y="603" font-size="21">cart pivot</text>
+<path d="M671 558H798" stroke="var(--ink)" stroke-width="2" marker-end="url(#ink)"/>
+<text x="692" y="598" font-size="21">right (+)</text>
+
+</g>
+</svg>

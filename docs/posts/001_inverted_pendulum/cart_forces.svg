@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="485" viewBox="0 0 900 485" role="img" aria-labelledby="title desc">
+  <title id="title">Separate the forces on the cart and the rod</title>
+  <desc id="desc">For a right-moving cart, F points right, resistance minus b x dot points left, and the rod exerts minus N leftward at the pivot. On the rod, the cart exerts N right and P up at the pivot; gravity mg acts down at its center of mass. Arrows define positive N, P and F; the cart vertical forces are omitted.</desc>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --ink: #25384a;
+      --line: #52677b;
+      --muted: #66788a;
+      --divider: #94a3b8;
+      --blue: #1763a6;
+      --orange: #ad4715;
+      --purple: #79509b;
+      --wash: rgba(23, 99, 166, 0.07);
+      --cart: rgba(23, 99, 166, 0.12);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink: #e2e8f0;
+        --line: #b1c2d1;
+        --muted: #859bb0;
+        --divider: #52677b;
+        --blue: #75baff;
+        --orange: #f4a66a;
+        --purple: #c9a3e6;
+        --wash: rgba(117, 186, 255, 0.07);
+        --cart: rgba(117, 186, 255, 0.12);
+      }
+    }
+  </style>
+<defs><marker id="ink" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse"><path d="M0 0L7 3.5L0 7Z" fill="var(--ink)"/></marker><marker id="line" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse"><path d="M0 0L7 3.5L0 7Z" fill="var(--line)"/></marker><marker id="blue" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse"><path d="M0 0L7 3.5L0 7Z" fill="var(--blue)"/></marker><marker id="orange" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse"><path d="M0 0L7 3.5L0 7Z" fill="var(--orange)"/></marker><marker id="purple" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse"><path d="M0 0L7 3.5L0 7Z" fill="var(--purple)"/></marker></defs>
+<g font-family="sans-serif" font-size="24" fill="var(--ink)" stroke-linecap="round" stroke-linejoin="round">
+
+<text x="28" y="38" font-size="28">Forces on the cart</text>
+<text x="492" y="38" font-size="28">Forces on the rod</text>
+<path d="M450 22V454" stroke="var(--divider)"/>
+<rect x="135" y="250" width="150" height="52" rx="6" fill="var(--cart)" stroke="var(--line)" stroke-width="3"/>
+<text x="198" y="286">M</text>
+<circle cx="163" cy="319" r="14" fill="var(--line)"/>
+<circle cx="257" cy="319" r="14" fill="var(--line)"/>
+<path d="M36 336H416" stroke="var(--muted)" stroke-width="2"/>
+<path d="M210 250V199" stroke="var(--line)" stroke-width="3"/>
+<circle cx="210" cy="199" r="5" fill="var(--ink)"/>
+<path d="M210 199H60" stroke="var(--blue)" stroke-width="3" marker-end="url(#blue)"/>
+<text x="112" y="181" fill="var(--blue)">−N</text>
+<text x="236" y="207" font-size="22">at the pivot</text>
+<path d="M285 274H404" stroke="var(--orange)" stroke-width="3" marker-end="url(#orange)"/>
+<text x="351" y="255" fill="var(--orange)">F</text>
+<path d="M135 290H40" stroke="var(--purple)" stroke-width="3" marker-end="url(#purple)"/>
+<text x="32" y="270" fill="var(--purple)">−bẋ</text>
+<path d="M154 100H292" stroke="var(--line)" stroke-width="2" marker-end="url(#line)"/>
+<text x="100" y="140" font-size="22">cart moving right (ẋ &gt; 0)</text>
+<text x="28" y="399" font-size="22">Horizontal forces only.</text>
+<text x="28" y="434" font-size="22">The track prevents vertical motion.</text>
+<!-- The rod is separated from the cart to expose the reaction pair. -->
+<path d="M622 336L748 102" stroke="var(--muted)" stroke-width="11"/>
+<path d="M622 336H772" stroke="var(--blue)" stroke-width="3" marker-end="url(#blue)"/>
+<text x="788" y="345" fill="var(--blue)">N</text>
+<path d="M622 336V213" stroke="var(--purple)" stroke-width="3" marker-end="url(#purple)"/>
+<text x="582" y="226" fill="var(--purple)">P</text>
+<circle cx="622" cy="336" r="5" fill="var(--ink)"/>
+<path d="M685 219V302" stroke="var(--orange)" stroke-width="3" marker-end="url(#orange)"/>
+<text x="704" y="288" fill="var(--orange)">mg</text>
+<circle cx="685" cy="219" r="7" fill="var(--blue)"/>
+<path d="M693 215L750 192" stroke="var(--ink)" stroke-width="1.5"/>
+<text x="756" y="180" font-size="21">center</text>
+<text x="756" y="207" font-size="21">of mass</text>
+<text x="566" y="379" font-size="22">pivot</text>
+<text x="492" y="434" font-size="22">N and −N act on different objects.</text>
+<text x="492" y="465" font-size="20">Arrows show positive N, P and F.</text>
+
+</g>
+</svg>

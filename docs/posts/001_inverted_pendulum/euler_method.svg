@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="525" viewBox="0 0 960 525" role="img" aria-labelledby="title desc">
+<title id="title">Euler's method uses the current derivative for each straight step</title>
+<desc id="desc">A steepening blue curve shows the exact solution y = exp(3t) of dy/dt = 3y with y(0) = 1. A solid orange polyline with square nodes takes four Euler steps of length 0.25, ending near 9.38 while the exact solution reaches 20.09. A green dashed polyline with small circular nodes takes twenty steps of length 0.05, ending near 16.37 and staying closer to the exact curve. The coarse node at t = 0.75 is labeled slope = dy/dt = 3y, evaluated at that approximate node. A right triangle below the final straight segment shows the time step of 0.25 and the rise equal to this derivative times the time step. Both axes are dimensionless.</desc>
+<style>
+  :root {
+    color-scheme: light dark;
+    --ink: #25384a;
+    --line: #52677b;
+    --grid: #66788a;
+    --blue: #1763a6;
+    --orange: #ad4715;
+    --green: #267451;
+    --wash: rgba(173, 71, 21, 0.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e2e8f0;
+      --line: #b1c2d1;
+      --grid: #859bb0;
+      --blue: #75baff;
+      --orange: #f4a66a;
+      --green: #88d4b0;
+      --wash: rgba(244, 166, 106, 0.06);
+    }
+  }
+</style>
+<g font-family="DejaVu Serif, serif" font-size="23" fill="var(--ink)" stroke-linecap="butt" stroke-linejoin="miter">
+<path d="M90 40H135" fill="none" stroke="var(--blue)" stroke-width="3"/>
+<text x="148" y="48">Exact</text>
+<path d="M286 40H331" fill="none" stroke="var(--orange)" stroke-width="3"/>
+<rect x="303" y="35" width="10" height="10" fill="var(--orange)"/>
+<text x="344" y="48">Euler Δt = 0.25</text>
+<path d="M592 40H637" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-dasharray="6 4"/>
+<circle cx="615" cy="40" r="3" fill="var(--green)"/>
+<text x="650" y="48">Euler Δt = 0.05</text>
+
+<path d="M90.0 442.000H720.0" stroke="var(--grid)" stroke-opacity="0.22" stroke-width="1"/>
+<text x="73.0" y="450.000" text-anchor="end" font-size="21">0</text>
+<path d="M90.0 362.465H720.0" stroke="var(--grid)" stroke-opacity="0.22" stroke-width="1"/>
+<text x="73.0" y="370.465" text-anchor="end" font-size="21">5</text>
+<path d="M90.0 282.930H720.0" stroke="var(--grid)" stroke-opacity="0.22" stroke-width="1"/>
+<text x="73.0" y="290.930" text-anchor="end" font-size="21">10</text>
+<path d="M90.0 203.395H720.0" stroke="var(--grid)" stroke-opacity="0.22" stroke-width="1"/>
+<text x="73.0" y="211.395" text-anchor="end" font-size="21">15</text>
+<path d="M90.0 123.860H720.0" stroke="var(--grid)" stroke-opacity="0.22" stroke-width="1"/>
+<text x="73.0" y="131.860" text-anchor="end" font-size="21">20</text>
+<path d="M90.0 100.0V442.0H748.0" fill="none" stroke="var(--line)" stroke-width="2"/>
+<path d="M90.000 442.0v7" stroke="var(--line)" stroke-width="2"/>
+<text x="90.000" y="476.0" text-anchor="middle" font-size="21">0</text>
+<path d="M247.500 442.0v7" stroke="var(--line)" stroke-width="2"/>
+<text x="247.500" y="476.0" text-anchor="middle" font-size="21">0.25</text>
+<path d="M405.000 442.0v7" stroke="var(--line)" stroke-width="2"/>
+<text x="405.000" y="476.0" text-anchor="middle" font-size="21">0.5</text>
+<path d="M562.500 442.0v7" stroke="var(--line)" stroke-width="2"/>
+<text x="562.500" y="476.0" text-anchor="middle" font-size="21">0.75</text>
+<path d="M720.000 442.0v7" stroke="var(--line)" stroke-width="2"/>
+<text x="720.000" y="476.0" text-anchor="middle" font-size="21">1</text>
+<text x="48" y="95" font-style="italic">y</text>
+<text x="771" y="477" font-style="italic">t</text>
+<path d="M562.500 356.749H720.000V292.810Z" fill="var(--wash)"/>
+<path d="M562.500 356.749H720.000V292.810" fill="none" stroke="var(--line)" stroke-width="1.8" stroke-dasharray="5 5"/>
+<path d="M709.000 356.749v-11h11" fill="none" stroke="var(--line)" stroke-width="1.2"/>
+<text x="641.250" y="385.749" text-anchor="middle">Δt = 0.25</text>
+<text x="737.000" y="332.779">Δy = (dy/dt) Δt</text>
+<polyline id="exact-curve" points="90.000,426.093 93.150,425.853 96.300,425.609 99.450,425.361 102.600,425.109 105.750,424.854 108.900,424.595 112.050,424.332 115.200,424.065 118.350,423.794 121.500,423.519 124.650,423.239 127.800,422.956 130.950,422.668 134.100,422.376 137.250,422.079 140.400,421.778 143.550,421.473 146.700,421.162 149.850,420.848 153.000,420.528 156.150,420.203 159.300,419.874 162.450,419.540 165.600,419.200 168.750,418.855 171.900,418.506 175.050,418.151 178.200,417.790 181.350,417.424 184.500,417.053 187.650,416.676 190.800,416.293 193.950,415.905 197.100,415.510 200.250,415.110 203.400,414.704 206.550,414.291 209.700,413.872 212.850,413.447 216.000,413.016 219.150,412.578 222.300,412.133 225.450,411.682 228.600,411.223 231.750,410.758 234.900,410.286 238.050,409.807 241.200,409.320 244.350,408.826 247.500,408.325 250.650,407.816 253.800,407.299 256.950,406.775 260.100,406.243 263.250,405.702 266.400,405.154 269.550,404.597 272.700,404.031 275.850,403.458 279.000,402.875 282.150,402.284 285.300,401.684 288.450,401.074 291.600,400.456 294.750,399.828 297.900,399.191 301.050,398.544 304.200,397.887 307.350,397.220 310.500,396.543 313.650,395.856 316.800,395.159 319.950,394.451 323.100,393.733 326.250,393.003 329.400,392.263 332.550,391.511 335.700,390.748 338.850,389.973 342.000,389.187 345.150,388.389 348.300,387.579 351.450,386.756 354.600,385.921 357.750,385.074 360.900,384.213 364.050,383.340 367.200,382.453 370.350,381.554 373.500,380.640 376.650,379.713 379.800,378.771 382.950,377.816 386.100,376.846 389.250,375.861 392.400,374.861 395.550,373.847 398.700,372.817 401.850,371.771 405.000,370.710 408.150,369.632 411.300,368.539 414.450,367.429 417.600,366.302 420.750,365.158 423.900,363.996 427.050,362.817 430.200,361.621 433.350,360.406 436.500,359.173 439.650,357.921 442.800,356.650 445.950,355.360 449.100,354.051 452.250,352.722 455.400,351.372 458.550,350.003 461.700,348.612 464.850,347.201 468.000,345.768 471.150,344.314 474.300,342.838 477.450,341.339 480.600,339.818 483.750,338.273 486.900,336.706 490.050,335.115 493.200,333.499 496.350,331.859 499.500,330.195 502.650,328.505 505.800,326.790 508.950,325.049 512.100,323.281 515.250,321.487 518.400,319.666 521.550,317.817 524.700,315.940 527.850,314.035 531.000,312.101 534.150,310.138 537.300,308.145 540.450,306.122 543.600,304.068 546.750,301.984 549.900,299.868 553.050,297.720 556.200,295.539 559.350,293.326 562.500,291.079 565.650,288.798 568.800,286.483 571.950,284.132 575.100,281.746 578.250,279.324 581.400,276.866 584.550,274.370 587.700,271.837 590.850,269.265 594.000,266.655 597.150,264.005 600.300,261.315 603.450,258.584 606.600,255.812 609.750,252.998 612.900,250.142 616.050,247.242 619.200,244.299 622.350,241.311 625.500,238.278 628.650,235.199 631.800,232.073 634.950,228.901 638.100,225.680 641.250,222.411 644.400,219.092 647.550,215.723 650.700,212.304 653.850,208.832 657.000,205.308 660.150,201.731 663.300,198.100 666.450,194.414 669.600,190.672 672.750,186.874 675.900,183.018 679.050,179.104 682.200,175.131 685.350,171.098 688.500,167.004 691.650,162.848 694.800,158.629 697.950,154.346 701.100,149.999 704.250,145.586 707.400,141.106 710.550,136.559 713.700,131.942 716.850,127.257 720.000,122.500" fill="none" stroke="var(--blue)" stroke-width="3"/>
+<polyline id="fine-euler-steps" points="90.000,426.093 121.500,423.707 153.000,420.963 184.500,417.807 216.000,414.179 247.500,410.005 279.000,405.206 310.500,399.687 342.000,393.340 373.500,386.041 405.000,377.647 436.500,367.995 468.000,356.894 499.500,344.128 531.000,329.447 562.500,312.564 594.000,293.149 625.500,270.821 657.000,245.144 688.500,215.616 720.000,181.658" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-dasharray="6 4"/>
+<circle cx="90.000" cy="426.093" r="2.5" fill="var(--green)"/>
+<circle cx="121.500" cy="423.707" r="2.5" fill="var(--green)"/>
+<circle cx="153.000" cy="420.963" r="2.5" fill="var(--green)"/>
+<circle cx="184.500" cy="417.807" r="2.5" fill="var(--green)"/>
+<circle cx="216.000" cy="414.179" r="2.5" fill="var(--green)"/>
+<circle cx="247.500" cy="410.005" r="2.5" fill="var(--green)"/>
+<circle cx="279.000" cy="405.206" r="2.5" fill="var(--green)"/>
+<circle cx="310.500" cy="399.687" r="2.5" fill="var(--green)"/>
+<circle cx="342.000" cy="393.340" r="2.5" fill="var(--green)"/>
+<circle cx="373.500" cy="386.041" r="2.5" fill="var(--green)"/>
+<circle cx="405.000" cy="377.647" r="2.5" fill="var(--green)"/>
+<circle cx="436.500" cy="367.995" r="2.5" fill="var(--green)"/>
+<circle cx="468.000" cy="356.894" r="2.5" fill="var(--green)"/>
+<circle cx="499.500" cy="344.128" r="2.5" fill="var(--green)"/>
+<circle cx="531.000" cy="329.447" r="2.5" fill="var(--green)"/>
+<circle cx="562.500" cy="312.564" r="2.5" fill="var(--green)"/>
+<circle cx="594.000" cy="293.149" r="2.5" fill="var(--green)"/>
+<circle cx="625.500" cy="270.821" r="2.5" fill="var(--green)"/>
+<circle cx="657.000" cy="245.144" r="2.5" fill="var(--green)"/>
+<circle cx="688.500" cy="215.616" r="2.5" fill="var(--green)"/>
+<circle cx="720.000" cy="181.658" r="2.5" fill="var(--green)"/>
+<polyline id="euler-steps" points="90.000,426.093 247.500,414.163 405.000,393.285 562.500,356.749 720.000,292.810" fill="none" stroke="var(--orange)" stroke-width="3.5"/>
+<rect x="85.000" y="421.093" width="10" height="10" fill="var(--orange)"/>
+<rect x="242.500" y="409.163" width="10" height="10" fill="var(--orange)"/>
+<rect x="400.000" y="388.285" width="10" height="10" fill="var(--orange)"/>
+<rect x="557.500" y="351.749" width="10" height="10" fill="var(--orange)"/>
+<rect x="715.000" y="287.810" width="10" height="10" fill="var(--orange)"/>
+<path d="M485 396L556.500 365.749" fill="none" stroke="var(--line)" stroke-width="1.5"/>
+<text x="420" y="422">slope = dy/dt = 3y</text>
+</g>
+</svg>
